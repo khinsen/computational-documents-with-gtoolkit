@@ -35,41 +35,37 @@ FluDataset class >> uniqueInstance [
 ]
 
 { #category : #accessing }
-FluDataset >> asInterpretedDataFrame [
+FluDataset >> asDataFrame [
+	"Present the data as a DataFrame with columns converted to the most suitable data types:
+	 numbers for numerical quantities, Timespans for the weeks. Missing values are represented
+	 by nil."
 	| data |
 	data := self asRawDataFrame.
+	"Transform the week specifications from pseudo-ISO8601 notation to Timespan objects"
 	data column: 'week'
 		  put: ((data column: 'week') collect:
-					[ :each | Week year: (each first: 4) asNumber week: (each last: 2) asNumber ]).
-	#('inc' 'inc_low' 'inc_up' 'inc100' 'inc100_low' 'inc100_up') do:
-		[ :c | data column: c put: ((data column: c) collect: #asNumber) ].
+					[ :each | Week year: (each first: 4) asNumber
+										week: (each last: 2) asNumber ]).
+	"Transform the numerical columns to numbers, replacing illegal values by nil"
+	#('indicator' 'inc' 'inc_low' 'inc_up' 'inc100' 'inc100_low' 'inc100_up') do:
+		[ :c |
+			data column: c put: ((data column: c) collect:
+				[ : each | [ each asNumber ] on: Error do: [ :exception | nil ] ]) ].
+	"It would be nice to sort the data by the week column, but sorting is not implemented
+	 for DataFrames."
 	^ data
 
 ]
 
 { #category : #accessing }
 FluDataset >> asRawDataFrame [
+	"Present the data as a DataFrame but without any conversion. All values are Strings."
 	| lines data |
 	lines := rawData lines.
 	data := DataFrame fromRows: ((lines allButFirst: 2) collect: [ :each | each splitOn: ',' ]).
 	data columnNames: (lines second splitOn: ',').
 	^ data
 
-]
-
-{ #category : #accessing }
-FluDataset >> extractColumns: names [
-	| lines  columnNames indices data |
-	lines := rawData lines.
-	columnNames := lines second splitOn: ','.
-	indices := names collect: [ :each | columnNames indexOf: each ].
-	data := Array2D rows: lines size - 2 columns: names size.
-	(lines allButFirst: 2) withIndexDo:
-		[ :line :i |
-			| values |
-			values := line splitOn: ','.
-			indices withIndexDo: [ :j :jj | data at: i at: jj put: (values at: j) ] ].
-	^ data
 ]
 
 { #category : #initialization }

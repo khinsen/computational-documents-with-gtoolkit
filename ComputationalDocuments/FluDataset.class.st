@@ -37,22 +37,31 @@ FluDataset class >> uniqueInstance [
 { #category : #accessing }
 FluDataset >> asDataFrame [
 	"Present the data as a DataFrame with columns converted to the most suitable data types:
-	 numbers for numerical quantities, Timespans for the weeks. Missing values are represented
-	 by nil."
-	| data |
+	 numbers for numerical quantities, Timespans for the weeks. The rows are sorted by
+	 increasing date. Missing values are represented by nil. A boolean-valued column 'missingData'
+	 facilitates finding incomplete rows."
+	| data missingData |
 	data := self asRawDataFrame.
-	"Transform the week specifications from pseudo-ISO8601 notation to Timespan objects"
+	"Transform the week specifications from pseudo-ISO8601 notation to Timespan objects.
+	 Sort by week."
 	data column: 'week'
 		  put: ((data column: 'week') collect:
 					[ :each | Week year: (each first: 4) asNumber
 										week: (each last: 2) asNumber ]).
+	data orderBy: 'week'.
 	"Transform the numerical columns to numbers, replacing illegal values by nil"
 	#('indicator' 'inc' 'inc_low' 'inc_up' 'inc100' 'inc100_low' 'inc100_up') do:
-		[ :c |
-			data column: c put: ((data column: c) collect:
-				[ : each | [ each asNumber ] on: Error do: [ :exception | nil ] ]) ].
-	"It would be nice to sort the data by the week column, but sorting is not implemented
-	 for DataFrames."
+		[ :c | data toColumn: c
+						applyElementwise:
+							[ : each | [ each asNumber ]
+											 on: Error do: [ :exception | nil ] ] ].
+	"Add a column with a missing data indicator."
+	missingData := Array new: data size.
+	data collect: [ :row | row detect: [ :each | each isNil ]
+										ifFound: [ true ]
+										ifNone: [ false ]]
+		  into: missingData.
+	data atColumn: 'missingData' put: missingData.
 	^ data
 
 ]

@@ -1,9 +1,9 @@
 "
-[[[
-| graph |
-graph := #(5 6 5 6 4 2 10 10 10 10 12 12 14 8 5 6 4 2 3 4 5 6) histogram.
-graph view canvas open
-]]]
+!Incidence of influenza-like illness in France
+
+This dataset on the incidence of influenza-like illness (French: syndrôme grippal) in France has been made available by the ""Réseau Sentinelles"" (*https://www.sentiweb.fr/*) and is based on the observations by general practitioners all over the country.
+
+
 "
 Class {
 	#name : #FluDataset,

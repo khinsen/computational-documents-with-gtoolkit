@@ -1,5 +1,5 @@
 # computational-documents-with-gtoolkit
-Experiments [GToolkit](https://gtoolkit.com/) for computational documents.
+Experiments with [GToolkit](https://gtoolkit.com/) for computational documents.
 
 Installation in Pharo 7:
 ```

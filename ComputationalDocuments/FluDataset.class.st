@@ -1,17 +1,17 @@
 "
 !Incidence of influenza-like illness in France
 
-This dataset on the incidence of influenza-like illness (French: syndrôme grippal) in France has been made available by the ""Réseau Sentinelles"" (*https://www.sentiweb.fr/*) and is based on the observations by general practitioners all over the country. The dataset contains cumulative weekly data, starting in 1984.
-
+This dataset on the incidence of influenza-like illness (French: syndrôme grippal) in France has been made available by the ""Réseau Sentinelles"" (*https://www.sentiweb.fr/*) and is based on the observations by general practitioners all over the country. The dataset contains cumulative weekly data, starting in 1984:
 [[[
 (FluDataset uniqueInstance asDataFrame column: 'week') first start asDate
 ]]]
 
+For each week, an estimated incidence is provided together with statistical lower and upper bounds for this estimate.
 [[[
-FluDataset uniqueInstance asDataFrame.
+FluDataset uniqueInstance.
 ]]]
 
-!!Processing
+!!Data processing
 
 The raw data is downloaded directly from the Web site, noting the retrieval date because the URL points to a continuously updated file.
 ${method:name=FluDataset>>#initialize|expanded=}$
@@ -19,7 +19,7 @@ ${method:name=FluDataset>>#initialize|expanded=}$
 Next, the downloaded CSV file is parsed and the data fields, still in text format, are loaded into a ${class:name=DataFrame}$.
 ${method:name=FluDataset>>#asRawDataFrame|expanded=}$
 
-A proper ${class:name=DataFrame}$ is then constructed by converting each column into an appropriate data type. Most columns are numerical, the most notable exception being 'week', which indicates the week to which the observations belong, and which are converted to ${class:name=Week}$ objects. In the numerical columns, failed conversions indicate missing data that gets replaced by nil. To facilitate the identification of rows with missing data values, a new boolean column 'missingData' is added.
+A proper ${class:name=DataFrame}$ is then constructed by converting each column into an appropriate data type. Most columns are numerical, the most notable exception being 'week', which indicates the week to which the observations belong, and which are converted to ${class:name=Week}$ objects. In the numerical columns, failed conversions indicate missing data that gets replaced by ==nil==. To facilitate the identification of rows with missing data values, a new boolean column 'missingData' is added.
 ${method:name=FluDataset>>#asDataFrame|expanded=}$
 
 "
@@ -93,6 +93,35 @@ FluDataset >> asRawDataFrame [
 	data columnNames: (lines second splitOn: ',').
 	^ data
 
+]
+
+{ #category : #inspecting }
+FluDataset >> gtItemsFor: aView [
+	<gtView>
+	| aList |
+
+	aList := aView columnedList
+		title: 'Items' translated;
+		priority: 50;
+		items: [ self asDataFrame asOrderedCollection ].
+		
+	aList column
+		title: 'Week starting';
+		matchParent;
+		item: [ :eachItem :eachIndex | (eachItem atKey: 'week') start asDate ].
+	
+	aList column
+		title: 'Estimated incidence';
+		matchParent;
+		item: [ :eachItem :eachIndex | eachItem atKey: 'inc' ].
+
+	aList column
+		title: 'Lower/upper bound (95%)';
+		matchParent;
+		item: [ :eachItem :eachIndex | { eachItem atKey: 'inc_low' . eachItem atKey: 'inc_up' }];
+		itemFormat: [ :item | item first asString , ' / ' , item second asString ].
+	
+	^ aList
 ]
 
 { #category : #initialization }

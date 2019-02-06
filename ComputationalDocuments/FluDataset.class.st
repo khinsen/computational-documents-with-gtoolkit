@@ -53,6 +53,19 @@ FluDataset class >> uniqueInstance [
 ]
 
 { #category : #accessing }
+FluDataset >> asCleanedUpDataFrame [
+	"Answer a DataFrame with only the most useful data. Rows with missing data are removed,
+	 and only the most informative columns are retained: 'inc', 'inc_low', 'inc_up', 
+	 the population-relative versions 'inc100', 'inc100_low', and 'inc100_up', and 'weeks'."
+
+	| data |
+	data := self asDataFrame.
+	"Note: there is no reject: method in class DataFrame."
+	^ (data select: [ :row | (row atKey: 'missingData') not ])
+		columns: #('week' 'inc' 'inc_low' 'inc_up' 'inc100' 'inc100_low' 'inc100_up')
+]
+
+{ #category : #accessing }
 FluDataset >> asDataFrame [
 	"Present the data as a DataFrame with columns converted to the most suitable data types:
 	 numbers for numerical quantities, Timespans for the weeks. The rows are sorted by
@@ -96,6 +109,43 @@ FluDataset >> asRawDataFrame [
 ]
 
 { #category : #inspecting }
+FluDataset >> gtInspectorIncidenceItemsIn: composite [
+	<gtInspectorPresentationOrder: 0>
+	composite table 
+		title: 'Incidence';
+		display: [ self asDataFrame ];
+		column: 'Week starting' evaluated:
+			[ :each | (each atKey: 'week') start asDate ];
+		column: 'Incidence' evaluated:
+			[ :each | each atKey: 'inc' ];
+		column: 'Lower/Upper bound (95%)' evaluated:
+			[ :each | (each atKey: 'inc_low') asString , ' - ' , (each atKey: 'inc_up') asString ]
+]
+
+{ #category : #inspecting }
+FluDataset >> gtInspectorPlotDataIn: composite [
+	<gtInspectorPresentationOrder: -10>
+	composite roassal2
+		title: 'Plot';
+		initializeView: [ self plotIncidence ].
+
+]
+
+{ #category : #inspecting }
+FluDataset >> gtInspectorPopulationRelativeIncidenceItemsIn: composite [
+	<gtInspectorPresentationOrder: 0>
+	composite table 
+		title: 'Incidence per 100 inhabitants';
+		display: [ self asDataFrame ];
+		column: 'Week starting' evaluated:
+			[ :each | (each atKey: 'week') start asDate ];
+		column: 'Incidence per 100 inhabitants' evaluated:
+			[ :each | each atKey: 'inc100' ];
+		column: 'Lower/Upper bound (95%)' evaluated:
+			[ :each | (each atKey: 'inc100_low') asString , ' - ' , (each atKey: 'inc100_up') asString ]
+]
+
+{ #category : #inspecting }
 FluDataset >> gtItemsFor: aView [
 	<gtView>
 	| aList |
@@ -128,6 +178,30 @@ FluDataset >> gtItemsFor: aView [
 FluDataset >> initialize [
 	rawData := 'http://www.sentiweb.fr/datasets/incidence-PAY-3.csv' asZnUrl retrieveContents.
 	retrievalTime := DateAndTime now.
+]
+
+{ #category : #plotting }
+FluDataset >> plotIncidence [
+	| df minDate b ds |
+	df := self asCleanedUpDataFrame.
+	minDate := ((df at: 1) atKey: 'week') start asDate.
+	b := RTGrapher new.
+	b extent: 300 @ 200.
+	ds := RTData new.
+	ds interaction popup.
+	ds points: (df columns: #('week' 'inc')).
+	ds x: [ :point | ((point at: 1) start asDate julianDayNumber) - minDate julianDayNumber ].
+	ds y: [ :point | point at: 2 ].
+	ds barShape color: Color blue; width: 1.
+	b add: ds.
+	b axisX
+		labelRotation: -40;
+		labelConversion: [ :v | Date julianDayNumber: v + minDate julianDayNumber ].
+	b axisY.
+	b build.
+	b view @ RTZoomableView @ RTZoomableBoxView.
+	^ b view
+
 ]
 
 { #category : #accessing }

@@ -141,18 +141,27 @@ FluDataset >> gtInspectorIncidenceItemsIn: composite [
 		display: [ self asDataFrame ];
 		column: 'Week starting' evaluated:
 			[ :each | (each atKey: 'week') start asDate ];
-		column: 'Incidence' evaluated:
+		column: 'Incidence estimate' evaluated:
 			[ :each | each atKey: 'inc' ];
 		column: 'Lower/Upper bound (95%)' evaluated:
 			[ :each | (each atKey: 'inc_low') asString , ' - ' , (each atKey: 'inc_up') asString ]
 ]
 
 { #category : #inspecting }
-FluDataset >> gtInspectorPlotDataIn: composite [
+FluDataset >> gtInspectorPlotIncidenceIn: composite [
 	<gtInspectorPresentationOrder: -10>
 	composite roassal2
-		title: 'Plot';
-		initializeView: [ self plotIncidence ].
+		title: 'Plot: incidence';
+		initializeView: [ self incidencePlot ].
+
+]
+
+{ #category : #inspecting }
+FluDataset >> gtInspectorPlotPopulationRelativeIncidenceIn: composite [
+	<gtInspectorPresentationOrder: -10>
+	composite roassal2
+		title: 'Plot: incidence per 100.000 inhabitants';
+		initializeView: [ self populationRelativeIncidencePlot ].
 
 ]
 
@@ -164,7 +173,7 @@ FluDataset >> gtInspectorPopulationRelativeIncidenceItemsIn: composite [
 		display: [ self asDataFrame ];
 		column: 'Week starting' evaluated:
 			[ :each | (each atKey: 'week') start asDate ];
-		column: 'Incidence per 100 inhabitants' evaluated:
+		column: 'Incidence estimate per 100.000 inhabitants' evaluated:
 			[ :each | each atKey: 'inc100' ];
 		column: 'Lower/Upper bound (95%)' evaluated:
 			[ :each | (each atKey: 'inc100_low') asString , ' - ' , (each atKey: 'inc100_up') asString ]
@@ -199,22 +208,24 @@ FluDataset >> gtItemsFor: aView [
 	^ aList
 ]
 
-{ #category : #initialization }
-FluDataset >> initialize [
-	rawData := 'http://www.sentiweb.fr/datasets/incidence-PAY-3.csv' asZnUrl retrieveContents.
-	retrievalTime := DateAndTime now.
+{ #category : #plotting }
+FluDataset >> incidencePlot [
+	| df |
+	df := self asCleanedUpDataFrame columns: #('week' 'inc').
+	df columnNames: #('week' 'incidence').
+	^ self incidencePlotFor: df
+
 ]
 
 { #category : #plotting }
-FluDataset >> plotIncidence [
-	| df minDate b ds |
-	df := self asCleanedUpDataFrame.
-	minDate := ((df at: 1) atKey: 'week') start asDate.
+FluDataset >> incidencePlotFor: incidenceDataSeries [
+	| minDate b ds |
+	minDate := (incidenceDataSeries column: 'week') first start asDate.
 	b := RTGrapher new.
 	b extent: 300 @ 200.
 	ds := RTData new.
 	ds interaction popup.
-	ds points: (df columns: #('week' 'inc')).
+	ds points: (incidenceDataSeries columns: #('week' 'incidence')).
 	ds x: [ :point | ((point at: 1) start asDate julianDayNumber) - minDate julianDayNumber ].
 	ds y: [ :point | point at: 2 ].
 	ds barShape color: Color blue; width: 1.
@@ -226,6 +237,21 @@ FluDataset >> plotIncidence [
 	b build.
 	b view @ RTZoomableView @ RTZoomableBoxView.
 	^ b view
+
+]
+
+{ #category : #initialization }
+FluDataset >> initialize [
+	rawData := 'http://www.sentiweb.fr/datasets/incidence-PAY-3.csv' asZnUrl retrieveContents.
+	retrievalTime := DateAndTime now.
+]
+
+{ #category : #plotting }
+FluDataset >> populationRelativeIncidencePlot [
+	| df |
+	df := self asCleanedUpDataFrame columns: #('week' 'inc100').
+	df columnNames: #('week' 'incidence').
+	^ self incidencePlotFor: df
 
 ]
 

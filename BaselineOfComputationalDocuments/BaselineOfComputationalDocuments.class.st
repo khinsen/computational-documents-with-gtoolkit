@@ -18,5 +18,9 @@ BaselineOfComputationalDocuments >> baseline: spec [
 			with: [ spec repository: 'github://ObjectProfile/Roassal2:master/src' ].
 
 		spec
+			baseline: 'PolyMath'
+			with: [ spec repository: 'github://PolyMathOrg/PolyMath:master/src' ].
+
+		spec
 			package: 'ComputationalDocuments' with: [ spec requires: #('DataFrame' 'Roassal2') ] ].
 ]

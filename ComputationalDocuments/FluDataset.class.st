@@ -68,13 +68,13 @@ Class {
 
 { #category : #'instance creation' }
 FluDataset class >> new [
-	self error: 'Author is a singleton -- send uniqueInstance instead'
+	self error: 'FluDataset is a singleton -- send uniqueInstance instead'
 ]
 
 { #category : #'instance creation' }
 FluDataset class >> reset [
 	<script>
-	^ self uniqueInstance reset.
+	uniqueInstance := nil
 ]
 
 { #category : #'instance creation' }

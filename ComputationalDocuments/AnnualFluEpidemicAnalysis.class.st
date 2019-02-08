@@ -3,14 +3,21 @@
 
 This analysis is based on ${class:name=FluDataset}$, a dataset on the incidence of influenza-like illness (French: syndrôme grippal) in France that has been made available by the ""Réseau Sentinelles"" (*https://www.sentiweb.fr/*).
 
-!!Definition of the annual incidencePlot 
+!!Definition of the annual incidence
 
 ${class:name=FluDataset}$ provides weekly estimates for the incidence of influenza-like illness which show a strong peak in January and near-zero values in summer. We thus define the annual incidence in year Y as the sum over the weekly incidences from August 1st Y-1 to August 1st Y, with minor adjustments of the summation limits to adapt them to the weekly grid imposed by the data.
 ${method:name=AnnualFluEpidemicAnalysis>>#annualIncidence}$
 
+!!Results
+
 A plot shows a small number of exceptionally high annual incidences.
 [[[
 AnnualFluEpidemicAnalysis uniqueInstance annualIncidencePlot inspect.
+]]]
+
+A tabular view sorted by descending incidences makes it straightforward to identify the strongest epidemica:
+[[[
+AnnualFluEpidemicAnalysis uniqueInstance annualIncidence orderDescendingBy: 'annualIncidence'
 ]]]
 
 It is also instructive to consider a histogram of the annual incidences:
@@ -19,7 +26,7 @@ ${method:name=AnnualFluEpidemicAnalysis>>#annualIncidence}$
 [[[
 AnnualFluEpidemicAnalysis uniqueInstance annualIncidenceHistogramPlot inspect.
 ]]]
-
+All these views show three exceptionally strong epidemics in the years 1986, 1989, and 1990, which implied about 10% of the French population.
 "
 Class {
 	#name : #AnnualFluEpidemicAnalysis,

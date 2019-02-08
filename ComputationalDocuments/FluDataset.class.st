@@ -12,7 +12,12 @@ FluDataset uniqueInstance.
 
 For a plot, run the following code:
 [[[
-FluDataset uniqueInstance plotIncidence inspect.
+FluDataset uniqueInstance incidencePlot inspect.
+]]]
+
+A zoom on a few years makes the seasonal character of the incidence clearer:
+[[[
+(FluDataset uniqueInstance incidencePlotForTimespan: (Timespan starting: (DateAndTime fromString: '2014-01-01') duration: 4 years)) inspect.
 ]]]
 
 The dataset has missing incidence data for one week: 
@@ -88,6 +93,21 @@ FluDataset >> asCleanedUpDataFrame [
 	"Note: there is no reject: method in class DataFrame."
 	^ (data select: [ :row | (row atKey: 'missingData') not ])
 		columns: #('week' 'inc' 'inc_low' 'inc_up' 'inc100' 'inc100_low' 'inc100_up')
+]
+
+{ #category : #accessing }
+FluDataset >> asCleanedUpDataFrameForTimespan: aTimespan [
+	"Return a dataframe containing the weeks of which more than half
+	 is contained in aTimespan."
+	| df |
+	df := self asCleanedUpDataFrame.
+	aTimespan ifNil: [ ^ df ].
+	^ df select:
+		[ :row | ((row atKey: 'week') asTimespan
+						intersection: aTimespan)
+						ifNil: [ false ]
+						ifNotNil: [ :ts | ts duration * 2 > 1 week ] ]
+
 ]
 
 { #category : #accessing }
@@ -210,11 +230,7 @@ FluDataset >> gtItemsFor: aView [
 
 { #category : #plotting }
 FluDataset >> incidencePlot [
-	| df |
-	df := self asCleanedUpDataFrame columns: #('week' 'inc').
-	df columnNames: #('week' 'incidence').
-	^ self incidencePlotFor: df
-
+	^ self incidencePlotForTimespan: nil
 ]
 
 { #category : #plotting }
@@ -240,6 +256,15 @@ FluDataset >> incidencePlotFor: incidenceDataSeries [
 
 ]
 
+{ #category : #plotting }
+FluDataset >> incidencePlotForTimespan: aTimespan [
+	| df |
+	df := (self asCleanedUpDataFrameForTimespan: aTimespan) columns: #('week' 'inc').
+	df columnNames: #('week' 'incidence').
+	^ self incidencePlotFor: df
+
+]
+
 { #category : #initialization }
 FluDataset >> initialize [
 	rawData := 'http://www.sentiweb.fr/datasets/incidence-PAY-3.csv' asZnUrl retrieveContents.
@@ -248,8 +273,13 @@ FluDataset >> initialize [
 
 { #category : #plotting }
 FluDataset >> populationRelativeIncidencePlot [
+	^ self populationRelativeIncidencePlotForTimespan: nil
+]
+
+{ #category : #plotting }
+FluDataset >> populationRelativeIncidencePlotForTimespan: aTimespan [
 	| df |
-	df := self asCleanedUpDataFrame columns: #('week' 'inc100').
+	df := (self asCleanedUpDataFrameForTimespan: aTimespan) columns: #('week' 'inc100').
 	df columnNames: #('week' 'incidence').
 	^ self incidencePlotFor: df
 

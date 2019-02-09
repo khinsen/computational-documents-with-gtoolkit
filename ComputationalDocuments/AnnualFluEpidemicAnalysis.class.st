@@ -1,12 +1,7 @@
 "
 !The importance of flu epidemics in France since 1984
 
-This analysis is based on ${class:name=FluDataset}$, a dataset on the incidence of influenza-like illness (French: syndrôme grippal) in France that has been made available by the ""Réseau Sentinelles"" (*https://www.sentiweb.fr/*).
-
-!!Definition of the annual incidence
-
-${class:name=FluDataset}$ provides weekly estimates for the incidence of influenza-like illness which show a strong peak in January and near-zero values in summer. We thus define the annual incidence in year Y as the sum over the weekly incidences from August 1st Y-1 to August 1st Y, with minor adjustments of the summation limits to adapt them to the weekly grid imposed by the data.
-${method:name=AnnualFluEpidemicAnalysis>>#annualIncidence}$
+This analysis is based on ${class:name=FluDataset}$, a dataset on the incidence of influenza-like illness (French: syndrôme grippal) in France that has been made available by the ""Réseau Sentinelles"" (*https://www.sentiweb.fr/*). We use these weekly estimates to compute and compare the importance of flu epidemics from one year to another.
 
 !!Results
 
@@ -27,6 +22,22 @@ ${method:name=AnnualFluEpidemicAnalysis>>#annualIncidence}$
 AnnualFluEpidemicAnalysis uniqueInstance annualIncidenceHistogramPlot inspect.
 ]]]
 All these views show three exceptionally strong epidemics in the years 1986, 1989, and 1990, which implied about 10% of the French population.
+
+!!Computation of the annual incidence
+
+${class:name=FluDataset}$ provides weekly estimates for the incidence of influenza-like illness which show a strong peak in January and near-zero values in summer. We thus define the annual incidence in year Y as the sum over the weekly incidences from August 1st Y-1 to August 1st Y, with minor adjustments of the summation limits to adapt them to the weekly grid imposed by the data.
+
+${method:name=AnnualFluEpidemicAnalysis>>#firstOfAugustOfYear:|expanded=}$
+
+We can compute the annual incidence only if we have the full data for a year, from August to August. This may not be the case for the first and last years in the dataset. Here is how we compute the list of years for which we can compute the annual incidence:
+${method:name=AnnualFluEpidemicAnalysis>>#yearsWithCompleteData|expanded=}$
+
+For extracting the weekly data records corresponding to our year definition, we use a method from ${class:name=FluDataset}$:
+${method:name=FluDataset>>#asCleanedUpDataFrameForTimespan:|expanded=}$
+
+Now we just have to tie all the pieces together and construct a new ${class:name=DataFrame}$ with the annual incidence data:
+${method:name=AnnualFluEpidemicAnalysis>>#annualIncidence|expanded=}$
+
 "
 Class {
 	#name : #AnnualFluEpidemicAnalysis,
@@ -59,29 +70,15 @@ AnnualFluEpidemicAnalysis class >> uniqueInstance [
 
 { #category : #accessing }
 AnnualFluEpidemicAnalysis >> annualIncidence [
-	"Annual incidences are computed for years starting in August, when the incidence is
-	 lowest. Since the peaks are located in January, the sum over such a period is labelled
-	 with the number of the second calendar year.
-	 Example: the annual incidence for 2010 is computed from 2009-08-01 to 2010-07-31."
-	| firstOfAugust weeks firstYear lastYear years df |
+	| df |
 	annualIncidence ifNotNil: [ ^ annualIncidence ].
-	firstOfAugust := [ :year | Date year: year month: 8 day: 1 ].
-	weeks := fluData asCleanedUpDataFrame column: 'week'.
-	"The annual incidences can be computed for any year that is completely contained in the dataset.
-	 The first and/or last years in the dataset may have to be excluded."
-	firstYear := weeks first start year.
-	weeks first start > (firstOfAugust value: firstYear)
-		ifTrue: [ firstYear := firstYear + 1 ].
-	lastYear := weeks last end year.
-	weeks last end < (firstOfAugust value: lastYear)
-		ifTrue: [ lastYear := lastYear - 1 ].
-	years := (firstYear + 1) to: lastYear.
-	"Now make a DataFrame for the annual incidences."
+
 	df := DataFrame fromRows:
-			(years collect:
+			(self yearsWithCompleteData collect:
 				[ :y |
 					| ts data |
-					ts := Timespan starting: (firstOfAugust value: y - 1) duration: 1 year.
+					ts := Timespan starting: (self firstOfAugustOfYear: y - 1)
+										duration: 1 year.
 					data := fluData asCleanedUpDataFrameForTimespan: ts.
 					{ y . (data column: 'inc') sum } ]).
 	df columnNames: #('year' 'annualIncidence').
@@ -146,6 +143,11 @@ AnnualFluEpidemicAnalysis >> annualIncidencePlot [
 
 ]
 
+{ #category : #accessing }
+AnnualFluEpidemicAnalysis >> firstOfAugustOfYear: aYear [
+	^ Date year: aYear month: 8 day: 1
+]
+
 { #category : #inspecting }
 AnnualFluEpidemicAnalysis >> gtInspectorIncidenceItemsIn: composite [
 	<gtInspectorPresentationOrder: 0>
@@ -202,4 +204,18 @@ AnnualFluEpidemicAnalysis >> gtItemsFor: aView [
 { #category : #initialization }
 AnnualFluEpidemicAnalysis >> initialize [
 	fluData := FluDataset uniqueInstance
+]
+
+{ #category : #accessing }
+AnnualFluEpidemicAnalysis >> yearsWithCompleteData [
+	| weeks firstYear lastYear |
+	weeks := fluData asCleanedUpDataFrame column: 'week'.
+	firstYear := weeks first start year.
+	weeks first start > (self firstOfAugustOfYear: firstYear)
+		ifTrue: [ firstYear := firstYear + 1 ].
+	lastYear := weeks last end year.
+	weeks last end < (self firstOfAugustOfYear: lastYear)
+		ifTrue: [ lastYear := lastYear - 1 ].
+	^ (firstYear + 1) to: lastYear.
+
 ]

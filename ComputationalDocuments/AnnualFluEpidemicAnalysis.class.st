@@ -27,7 +27,7 @@ All these views show three exceptionally strong epidemics in the years 1986, 198
 
 ${class:name=FluDataset}$ provides weekly estimates for the incidence of influenza-like illness which show a strong peak in January and near-zero values in summer. We thus define the annual incidence in year Y as the sum over the weekly incidences from August 1st Y-1 to August 1st Y, with minor adjustments of the summation limits to adapt them to the weekly grid imposed by the data.
 
-${method:name=AnnualFluEpidemicAnalysis>>#firstOfAugustOfYear:|expanded=}$
+${method:name=AnnualFluEpidemicAnalysis>>#startOfSummationPeriodIn:|expanded=}$
 
 We can compute the annual incidence only if we have the full data for a year, from August to August. This may not be the case for the first and last years in the dataset. Here is how we compute the list of years for which we can compute the annual incidence:
 ${method:name=AnnualFluEpidemicAnalysis>>#yearsWithCompleteData|expanded=}$
@@ -77,7 +77,7 @@ AnnualFluEpidemicAnalysis >> annualIncidence [
 			(self yearsWithCompleteData collect:
 				[ :y |
 					| ts data |
-					ts := Timespan starting: (self firstOfAugustOfYear: y - 1)
+					ts := Timespan starting: (self startOfSummationPeriodIn: y - 1)
 										duration: 1 year.
 					data := fluData asCleanedUpDataFrameForTimespan: ts.
 					{ y . (data column: 'inc') sum } ]).
@@ -143,11 +143,6 @@ AnnualFluEpidemicAnalysis >> annualIncidencePlot [
 
 ]
 
-{ #category : #accessing }
-AnnualFluEpidemicAnalysis >> firstOfAugustOfYear: aYear [
-	^ Date year: aYear month: 8 day: 1
-]
-
 { #category : #inspecting }
 AnnualFluEpidemicAnalysis >> gtInspectorIncidenceItemsIn: composite [
 	<gtInspectorPresentationOrder: 0>
@@ -207,14 +202,19 @@ AnnualFluEpidemicAnalysis >> initialize [
 ]
 
 { #category : #accessing }
+AnnualFluEpidemicAnalysis >> startOfSummationPeriodIn: aYear [
+	^ Date year: aYear month: 8 day: 1
+]
+
+{ #category : #accessing }
 AnnualFluEpidemicAnalysis >> yearsWithCompleteData [
 	| weeks firstYear lastYear |
 	weeks := fluData asCleanedUpDataFrame column: 'week'.
 	firstYear := weeks first start year.
-	weeks first start > (self firstOfAugustOfYear: firstYear)
+	weeks first start > (self startOfSummationPeriodIn: firstYear)
 		ifTrue: [ firstYear := firstYear + 1 ].
 	lastYear := weeks last end year.
-	weeks last end < (self firstOfAugustOfYear: lastYear)
+	weeks last end < (self startOfSummationPeriodIn: lastYear)
 		ifTrue: [ lastYear := lastYear - 1 ].
 	^ (firstYear + 1) to: lastYear.
 

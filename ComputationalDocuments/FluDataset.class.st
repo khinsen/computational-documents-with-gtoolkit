@@ -10,14 +10,14 @@ Here is a tabular view of the data:
 FluDataset uniqueInstance.
 ]]]
 
-For a plot, run the following code:
+And here is a plot of the whole time series:
 [[[
-FluDataset uniqueInstance incidencePlot inspect.
+FluDataset uniqueInstance incidencePlot canvas buildMorph.
 ]]]
 
 A zoom on a few years makes the seasonal character of the incidence clearer:
 [[[
-(FluDataset uniqueInstance incidencePlotForTimespan: (Timespan starting: (DateAndTime fromString: '2014-01-01') duration: 4 years)) inspect.
+(FluDataset uniqueInstance incidencePlotForTimespan: (Timespan starting: (DateAndTime fromString: '2014-01-01') duration: 4 years)) canvas buildMorph.
 ]]]
 
 The dataset has missing incidence data for one week: 

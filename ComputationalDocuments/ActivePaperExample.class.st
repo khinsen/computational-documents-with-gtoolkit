@@ -7,6 +7,12 @@ Class {
 	#category : #ComputationalDocuments
 }
 
+{ #category : #initialization }
+ActivePaperExample >> initialize [
+	super initialize.
+	self class initializeSlots: self.
+]
+
 { #category : #'error situations' }
 ActivePaperExample >> modificationByUnauthorizedMethod [
 	n := 42

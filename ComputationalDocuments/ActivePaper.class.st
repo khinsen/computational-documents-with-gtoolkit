@@ -1,8 +1,8 @@
 Class {
 	#name : #ActivePaper,
 	#superclass : #Object,
-	#traits : 'SingletonTrait + TObservable',
-	#classTraits : 'SingletonTrait classTrait + TObservable classTrait',
+	#traits : 'TSingleton + TObservable',
+	#classTraits : 'TSingleton classTrait + TObservable classTrait',
 	#instVars : [
 		'document'
 	],

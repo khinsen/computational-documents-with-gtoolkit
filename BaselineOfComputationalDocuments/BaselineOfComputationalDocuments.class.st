@@ -22,5 +22,9 @@ BaselineOfComputationalDocuments >> baseline: spec [
 			with: [ spec repository: 'github://PolyMathOrg/PolyMath:master/src' ].
 
 		spec
+			baseline: 'SingletonTrait'
+			with: [ spec repository: 'github://khinsen/SingletonTrait:master' ].
+
+		spec
 			package: 'ComputationalDocuments' with: [ spec requires: #('DataFrame' 'Roassal2') ] ].
 ]

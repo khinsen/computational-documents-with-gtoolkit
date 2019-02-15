@@ -1,3 +1,6 @@
+"
+I represent a live document with computations.
+"
 Class {
 	#name : #ActivePaper,
 	#superclass : #Object,
@@ -11,19 +14,31 @@ Class {
 
 { #category : #'instance variables' }
 ActivePaper class >> addInstVarNamed: aString [
-	"Override instance variable creation to make all instance variables observable.
-	 Notify the uniqueInstance of every change."
+	"Override instance variable creation to make all instance variables APDataSlots."
 
 	aString substrings do: [ :each |
 		| varSymbol |
 		varSymbol := each asSymbol.
-		self addSlot: (ObservableSlot named: varSymbol).
-		uniqueInstance ifNotNil:
-			[ uniqueInstance observeAllSlots ] ]
+		self addSlot: (APDataSlot named: varSymbol) ]
 
 ]
 
-{ #category : #'access protection' }
+{ #category : #'data access' }
+ActivePaper >> announceReadAccessTo: aSymbol [
+	^ self
+]
+
+{ #category : #'data access' }
+ActivePaper >> announceWriteAccessTo: aSymbol [
+	| variables |
+	Transcript crLog: 'Writing ' , aSymbol asString.
+	variables := self computedVariablesInContext.
+	self assert: (variables includes: aSymbol)
+		  description: 'Unauthorized attempt to modify variable ' , aSymbol asString.
+
+]
+
+{ #category : #'data access' }
 ActivePaper >> computedVariablesInContext [
 	| context computedVariables |
 	computedVariables := Set new.
@@ -43,22 +58,4 @@ ActivePaper >> computedVariablesInContext [
 ActivePaper >> initialize [
 	super initialize.
 	self class initializeSlots: self.
-	self observeAllSlots
-]
-
-{ #category : #'access protection' }
-ActivePaper >> observeAllSlots [
-	self class slots do:
-		[ :slot | self property: slot name
-							whenChangedDo:
-								[ :value | self valueOf: slot name setTo: value ] ]
-]
-
-{ #category : #'access protection' }
-ActivePaper >> valueOf: aSymbol setTo: aValue [
-	| variables |
-	variables := self computedVariablesInContext.
-	self assert: (variables includes: aSymbol)
-		  description: 'Unauthorized attempt to modify variable ' , aSymbol asString.
-
 ]

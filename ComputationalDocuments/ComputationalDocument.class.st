@@ -11,7 +11,7 @@ Class {
 ComputationalDocument >> evaluationReceiver [
 	"Return an object that is used as a receiver (self) in a codeblock (code snippet) evalution"
 	<return: #Object>
-	^ self
+	^ APEvaluationReceiverProxy receiver: self
 ]
 
 { #category : #accessing }
@@ -28,6 +28,14 @@ ComputationalDocument >> gtDocumentFor: aView [
 			aDocument gtSaveActionFor: anAction ];
 		action: [ :anAction | 
 			aDocument gtShowMarkupActionFor: anAction ]
+]
+
+{ #category : #inspecting }
+ComputationalDocument >> gtViewsFor: aView inContext: aContext [
+	| view |
+	view := super gtViewsFor: aView inContext: aContext.
+	"Returns a GtPhlowLabelledView"
+	^ view
 ]
 
 { #category : #initialization }

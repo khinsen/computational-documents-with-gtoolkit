@@ -7,7 +7,7 @@ This analysis is based on ${class:name=FluDataset}$, a dataset on the incidence 
 
 A plot shows a small number of exceptionally high annual incidences.
 [[[
-AnnualFluEpidemicAnalysis uniqueInstance annualIncidencePlot canvas buildMorph.
+AnnualFluEpidemicAnalysis uniqueInstance annualIncidencePlot.
 ]]]
 
 A tabular view sorted by descending incidences makes it straightforward to identify the strongest epidemica:
@@ -19,7 +19,7 @@ It is also instructive to consider a histogram of the annual incidences, which a
 ${method:name=AnnualFluEpidemicAnalysis>>#annualIncidence}$
 
 [[[
-AnnualFluEpidemicAnalysis uniqueInstance annualIncidenceHistogramPlot canvas buildMorph.
+AnnualFluEpidemicAnalysis uniqueInstance annualIncidenceHistogramPlot.
 ]]]
 All these views show three exceptionally strong epidemics in the years 1986, 1989, and 1990, which implied about 10% of the French population.
 

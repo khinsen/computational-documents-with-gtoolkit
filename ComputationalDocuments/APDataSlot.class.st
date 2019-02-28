@@ -1,7 +1,7 @@
 Class {
 	#name : #APDataSlot,
 	#superclass : #ObservableSlot,
-	#category : #ComputationalDocuments
+	#category : #'ComputationalDocuments-Slots'
 }
 
 { #category : #initialization }

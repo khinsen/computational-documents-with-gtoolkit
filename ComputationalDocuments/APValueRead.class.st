@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'value'
 	],
-	#category : #ComputationalDocuments
+	#category : #'ComputationalDocuments-Slots'
 }
 
 { #category : #'instance creation' }

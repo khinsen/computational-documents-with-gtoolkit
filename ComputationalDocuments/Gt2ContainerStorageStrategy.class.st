@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'container'
 	],
-	#category : #ComputationalDocuments
+	#category : #'ComputationalDocuments-GToolkit'
 }
 
 { #category : #accessing }

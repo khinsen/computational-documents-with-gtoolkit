@@ -2,7 +2,7 @@ Trait {
 	#name : #TAPData,
 	#traits : 'TObservable',
 	#classTraits : 'TObservable classTrait',
-	#category : #ComputationalDocuments
+	#category : #'ComputationalDocuments-Slots'
 }
 
 { #category : #events }

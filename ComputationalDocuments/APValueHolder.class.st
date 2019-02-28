@@ -1,7 +1,7 @@
 Class {
 	#name : #APValueHolder,
 	#superclass : #NewValueHolder,
-	#category : #ComputationalDocuments
+	#category : #'ComputationalDocuments-Slots'
 }
 
 { #category : #accessing }

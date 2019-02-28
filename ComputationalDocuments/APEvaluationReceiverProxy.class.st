@@ -7,7 +7,7 @@ Class {
 	#instVars : [
 		'receiver'
 	],
-	#category : #ComputationalDocuments
+	#category : #'ComputationalDocuments-GToolkit'
 }
 
 { #category : #'instance creation' }

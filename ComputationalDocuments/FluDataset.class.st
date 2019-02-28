@@ -63,7 +63,7 @@ Class {
 	#classInstVars : [
 		'uniqueInstance'
 	],
-	#category : #ComputationalDocuments
+	#category : #'ComputationalDocuments-Demo'
 }
 
 { #category : #'instance creation' }

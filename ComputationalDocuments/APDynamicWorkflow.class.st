@@ -4,7 +4,8 @@ Class {
 	#traits : 'TSingleton + TAPData',
 	#classTraits : 'TSingleton classTrait + TAPData classTrait',
 	#instVars : [
-		'apDataDependencies'
+		'apDataDependencies',
+		'apComputingMethods'
 	],
 	#category : #ComputationalDocuments
 }
@@ -50,7 +51,8 @@ APDynamicWorkflow class >> new [
 
 { #category : #computation }
 APDynamicWorkflow >> apCompute: aSymbol [
-	(self apMethodComputingVariable: aSymbol)
+	self collectComputingMethods.
+	(apComputingMethods at: aSymbol)
 		valueWithReceiver: self arguments: Array new.
 	^ self readSlotNamed: aSymbol
 ]
@@ -75,16 +77,6 @@ APDynamicWorkflow >> apComputedVariablesInThisContext [
 APDynamicWorkflow >> apMake: aVariable dependencyOf: dependentVariable [
 	(apDataDependencies at: dependentVariable ifAbsentPut: [ Set new ])
 		dependencies add: aVariable
-]
-
-{ #category : #computation }
-APDynamicWorkflow >> apMethodComputingVariable: aSymbol [
-	| pragmas |
-	pragmas := (Pragma allNamed: #apComputes: in: self class)
-					select: [ :each | each arguments first = aSymbol ].
-	pragmas ifEmpty: [ Error signal: 'No method computes ', aSymbol ].
-	pragmas size > 1 ifTrue: [ Error signal: 'Multiple methods claim to compute ', aSymbol ].
-	^ pragmas first method
 ]
 
 { #category : #'data access' }
@@ -128,6 +120,26 @@ APDynamicWorkflow >> apValueOf: aSymbol setTo: aValue [
 	self assert: (variables includes: aSymbol)
 		  description: 'Unauthorized attempt to modify variable ' , aSymbol asString.
 
+]
+
+{ #category : #computation }
+APDynamicWorkflow >> collectComputingMethods [
+	| uncomputedInstVars computedUndeclaredVars |
+	apComputingMethods := Dictionary new.
+	(Pragma allNamed: #apComputes: in: self class) do:
+		[ :each | apComputingMethods at: each arguments first
+					 ifPresent: [ :earlier |
+									  Error signal: 'Methods ', each method name,
+															' and ', earlier method name,
+															' both claim to compute ',
+															each arguments first ]
+					 ifAbsentPut: [ each method ] ].
+	computedUndeclaredVars := apComputingMethods keys difference: self class instVarNames.
+	computedUndeclaredVars ifNotEmpty: [ Error signal: 'Variables computed but not declared: ',
+																		 (', ' join: computedUndeclaredVars) ].
+	uncomputedInstVars := self class instVarNames difference: apComputingMethods keys.
+	uncomputedInstVars ifNotEmpty: [ Error signal: 'Variables declared but not computed: ',
+																	 (', ' join: uncomputedInstVars) ].
 ]
 
 { #category : #initialization }

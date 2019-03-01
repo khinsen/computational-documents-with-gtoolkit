@@ -27,6 +27,36 @@ APDynamicWorkflowTest >> testDependencyChain [
 ]
 
 { #category : #tests }
+APDynamicWorkflowTest >> testErrorTwoMethodsComputeSameVariable [
+	| wf |
+	wf := APDynamicWorkflow new.
+	wf class addInstVarNamed: 'x'.
+	wf class compile: 'setX1 <apComputes: #x> x := 42'.
+	wf class compile: 'setX2 <apComputes: #x> x := 11'.
+	"The first computation should raise an error"
+	self should: [ wf x ] raise: Error.
+]
+
+{ #category : #tests }
+APDynamicWorkflowTest >> testErrorUncomputedInstVar [
+	| wf |
+	wf := APDynamicWorkflow new.
+	wf class addInstVarNamed: 'x y'.
+	wf class compile: 'setX <apComputes: #x> x := 1'.
+	self should: [ wf x ] raise: Error.
+]
+
+{ #category : #tests }
+APDynamicWorkflowTest >> testErrorUndeclaredComputedVar [
+	| wf |
+	wf := APDynamicWorkflow new.
+	wf class addInstVarNamed: 'x'.
+	wf class compile: 'setX <apComputes: #x> x := 1'.
+	wf class compile: 'setY <apComputes: #y> x := 1'.
+	self should: [ wf x ] raise: Error.
+]
+
+{ #category : #tests }
 APDynamicWorkflowTest >> testInstVarCreation [
 	| wf |
 	wf := APDynamicWorkflow new.

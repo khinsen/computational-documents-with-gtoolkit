@@ -17,7 +17,8 @@ APDynamicWorkflow class >> addInstVarNamed: aString [
 	| newInstVarNames |
 
 	"Apply special treatment only to subclasses"
-	self = APDynamicWorkflow ifTrue: [ ^ super addInstVarNamed: aString ].
+	self = APDynamicWorkflow
+		ifTrue: [ ^ super addInstVarNamed: aString ].
 
 	newInstVarNames := aString substrings.
 	newInstVarNames ifEmpty: [ ^ self ].
@@ -27,11 +28,10 @@ APDynamicWorkflow class >> addInstVarNamed: aString [
 		| varSymbol |
 		varSymbol := each asSymbol.
 		self addSlot: (APDataSlot named: varSymbol).
-		self compile: each , ' ^ self apCompute: #', each ].
-
-	"Put all slots under observation"
-	uniqueInstance ifNotNil:
-		[ uniqueInstance apObserveAllSlots ]
+		uniqueInstance ifNotNil:
+			[ (self slotNamed: varSymbol) initialize: uniqueInstance.
+			  uniqueInstance apObserveSlot: varSymbol ].
+		self compile: each , ' ^ self apCompute: #', each ]
 ]
 
 { #category : #testing }
@@ -41,7 +41,17 @@ APDynamicWorkflow class >> isAbstract [
 
 { #category : #'instance creation' }
 APDynamicWorkflow class >> new [
-	^ self newAnonymousSubclass uniqueInstance
+	| subclass |
+	subclass := self newAnonymousSubclass.
+	subclass class compile: 'isAbstract ^ false'.
+	^ subclass uniqueInstance
+]
+
+{ #category : #computation }
+APDynamicWorkflow >> apCompute: aSymbol [
+	(self apMethodComputingVariable: aSymbol)
+		valueWithReceiver: self arguments: Array new.
+	^ self readSlotNamed: aSymbol
 ]
 
 { #category : #'data access' }
@@ -66,21 +76,37 @@ APDynamicWorkflow >> apMake: aVariable dependencyOf: dependentVariable [
 		dependencies add: aVariable
 ]
 
+{ #category : #computation }
+APDynamicWorkflow >> apMethodComputingVariable: aSymbol [
+	| pragmas |
+	pragmas := (Pragma allNamed: #apComputes: in: self class)
+					select: [ :each | each arguments first = aSymbol ].
+	pragmas ifEmpty: [ Error signal: 'No method computes ', aSymbol ].
+	pragmas size > 1 ifTrue: [ Error signal: 'Multiple methods claim to compute ', aSymbol ].
+	^ pragmas first method
+]
+
 { #category : #'data access' }
 APDynamicWorkflow >> apObserveAllSlots [
 	self class slots do:
-		[ :slot | self property: slot name
-							whenReadDo:
-								[ self apReadAccessTo: slot name ].
-					 self property: slot name
-							whenChangedDo:
-								[ :value | self apValueOf: slot name setTo: value ] ]
+		[ :slot | self apObserveSlot: slot ]
+]
+
+{ #category : #'data access' }
+APDynamicWorkflow >> apObserveSlot: aSymbol [
+	self property: aSymbol
+		  whenReadDo:
+				[ self apReadAccessTo: aSymbol ].
+	self property: aSymbol
+		  whenChangedDo:
+				[ :value | self apValueOf: aSymbol setTo: value ]
 ]
 
 { #category : #'data access' }
 APDynamicWorkflow >> apReadAccessTo: aSymbol [
 	| variables |
 	variables := self apComputedVariablesInThisContext.
+	variables ifEmpty: [ ^ self ].
 	"Read access by the defining method requires no action."
 	variables first = aSymbol ifTrue: [ ^ self ].
 	"If the defining method is in the list, but not in the first place, there is

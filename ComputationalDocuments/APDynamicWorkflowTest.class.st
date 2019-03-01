@@ -21,6 +21,7 @@ APDynamicWorkflowTest >> testInstVarCreation [
 	wf := APDynamicWorkflow new.
 	wf class addInstVarNamed: 'x'.
 	self assert: (wf class slotNamed: #x) isObservableSlot.
-	self assert: (wf class observablePropertyNamed: #x) isKindOf: APDataSlot.
-	self assert: wf x equals: nil
+	self assert: ((wf observablePropertyNamed: #x) isKindOf: APValueHolder).
+	"There is no method for computing x, so access to x is an error."
+	self should: [ wf x ] raise: Error.
 ]

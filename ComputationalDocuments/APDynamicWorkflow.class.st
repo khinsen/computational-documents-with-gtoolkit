@@ -44,6 +44,7 @@ APDynamicWorkflow class >> new [
 	| subclass |
 	subclass := self newAnonymousSubclass.
 	subclass class compile: 'isAbstract ^ false'.
+	subclass class compile: 'name ^ ''APDynamicWorkflow+'''.
 	^ subclass uniqueInstance
 ]
 
@@ -61,8 +62,8 @@ APDynamicWorkflow >> apComputedVariablesInThisContext [
 	context := thisContext.
 	[ context isNil ] whileFalse:
 		[ context := context findContextSuchThat:
-			[ :c | c methodClass inheritsFrom: self class ].
-		  context isNil ifFalse:
+			[ :c | c methodClass = self class ].
+		  context ifNotNil:
 			[ context method pragmas
 					select: [ :p | p selector = #apComputes: ]
 					thenDo: [ :p | computedVariables add: p arguments first ].

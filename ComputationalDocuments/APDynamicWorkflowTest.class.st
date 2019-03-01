@@ -5,6 +5,15 @@ Class {
 }
 
 { #category : #tests }
+APDynamicWorkflowTest >> testDataDefinitionAndRetrieval [
+	| wf |
+	wf := APDynamicWorkflow new.
+	wf class addInstVarNamed: 'x'.
+	wf class compile: 'setX <apComputes: #x> x := 42'.
+	self assert: wf x equals: 42.
+]
+
+{ #category : #tests }
 APDynamicWorkflowTest >> testDependencyChain [
 	| wf |
 	wf := APDynamicWorkflow new.
@@ -12,6 +21,8 @@ APDynamicWorkflowTest >> testDependencyChain [
 	wf class compile: 'setX <apComputes: #x> x := 1'.
 	wf class compile: 'computeY <apComputes: #y> y := x + 1'.
 	wf class compile: 'computeZ <apComputes: #z> z := y + 1'.
+	self assert: wf x equals: 1.
+	self assert: wf y equals: 2.
 	self assert: wf z equals: 3
 ]
 

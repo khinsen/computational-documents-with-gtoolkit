@@ -35,7 +35,7 @@ APDynamicWorkflow class >> addInstVarNamed: aString [
 		self compile: each , ' self apCompute: #', each, '. ^ ', each ].
 
 	"Invalidate the cached computing methods dictionary"
-	uniqueInstance ifNotNil: [ uniqueInstance clearCachedState ]
+	uniqueInstance ifNotNil: [ uniqueInstance apClearCachedState ]
 ]
 
 { #category : #testing }
@@ -56,15 +56,48 @@ APDynamicWorkflow class >> new [
 APDynamicWorkflow class >> removeInstVarNamed: aString [
 
 	"Invalidate the cached computing methods dictionary"
-	uniqueInstance ifNotNil: [ uniqueInstance clearCachedState ].
+	uniqueInstance ifNotNil: [ uniqueInstance apClearCachedState ].
 
 	^ super removeInstVarNamed: aString.
 
 ]
 
+{ #category : #dependencies }
+APDynamicWorkflow >> apClearCachedState [
+	apComputingMethods := nil.
+	apDataDependencies := Dictionary new.
+
+]
+
+{ #category : #dependencies }
+APDynamicWorkflow >> apCollectComputingMethods [
+	| uncomputedInstVars computedUndeclaredVars |
+	apComputingMethods ifNotNil: [ ^ self ].
+	apComputingMethods := Dictionary new.
+	(Pragma allNamed: #apComputes: in: self class) do:
+		[ :each |
+			each method numArgs > 0
+				ifTrue: [ Error signal: 'Method ', each method name,
+													' computes ', each arguments first,
+													' but requires arguments' ].
+			apComputingMethods at: each arguments first
+				ifPresent: [ :earlier |
+								  Error signal: 'Methods ', each method name,
+														' and ', earlier method name,
+														' both claim to compute ',
+														each arguments first ]
+				ifAbsentPut: [ each method ] ].
+	computedUndeclaredVars := apComputingMethods keys difference: self class instVarNames.
+	computedUndeclaredVars ifNotEmpty: [ Error signal: 'Variables computed but not declared: ',
+																		 (', ' join: computedUndeclaredVars) ].
+	uncomputedInstVars := self class instVarNames difference: apComputingMethods keys.
+	uncomputedInstVars ifNotEmpty: [ Error signal: 'Variables declared but not computed: ',
+																	 (', ' join: uncomputedInstVars) ].
+]
+
 { #category : #computation }
 APDynamicWorkflow >> apCompute: aSymbol [
-	self collectComputingMethods.
+	self apCollectComputingMethods.
 	(apComputingMethods at: aSymbol)
 		valueWithReceiver: self arguments: Array new
 
@@ -135,42 +168,11 @@ APDynamicWorkflow >> apValueOf: aSymbol setTo: aValue [
 
 ]
 
-{ #category : #dependencies }
-APDynamicWorkflow >> clearCachedState [
-	apComputingMethods := nil.
-]
-
-{ #category : #dependencies }
-APDynamicWorkflow >> collectComputingMethods [
-	| uncomputedInstVars computedUndeclaredVars |
-	apComputingMethods ifNotNil: [ ^ self ].
-	apComputingMethods := Dictionary new.
-	(Pragma allNamed: #apComputes: in: self class) do:
-		[ :each |
-			each method numArgs > 0
-				ifTrue: [ Error signal: 'Method ', each method name,
-													' computes ', each arguments first,
-													' but requires arguments' ].
-			apComputingMethods at: each arguments first
-				ifPresent: [ :earlier |
-								  Error signal: 'Methods ', each method name,
-														' and ', earlier method name,
-														' both claim to compute ',
-														each arguments first ]
-				ifAbsentPut: [ each method ] ].
-	computedUndeclaredVars := apComputingMethods keys difference: self class instVarNames.
-	computedUndeclaredVars ifNotEmpty: [ Error signal: 'Variables computed but not declared: ',
-																		 (', ' join: computedUndeclaredVars) ].
-	uncomputedInstVars := self class instVarNames difference: apComputingMethods keys.
-	uncomputedInstVars ifNotEmpty: [ Error signal: 'Variables declared but not computed: ',
-																	 (', ' join: uncomputedInstVars) ].
-]
-
 { #category : #initialization }
 APDynamicWorkflow >> initialize [
 	super initialize.
 	self class initializeSlots: self.
 	self apObserveAllSlots.
-	apDataDependencies := Dictionary new.
-	apComputingMethods := nil.
+	self apClearCachedState.
+
 ]

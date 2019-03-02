@@ -16,6 +16,28 @@ APDocument class >> name: aSymbol [
 			yourself
 ]
 
+{ #category : #workflow }
+APDocument >> datasetNamed: aSymbol [
+	(self datasetNames includes: aSymbol)
+		ifFalse: [ self error: 'No dataset named ', aSymbol ].
+	^ workflow perform: aSymbol
+]
+
+{ #category : #workflow }
+APDocument >> datasetNames [
+	^ workflow class instVarNames asSet
+]
+
+{ #category : #workflow }
+APDocument >> defineDatasetNamed: aSymbol [
+	workflow class addInstVarNamed: aSymbol
+]
+
+{ #category : #workflow }
+APDocument >> defineScript: aString [
+	workflow class compile: aString
+]
+
 { #category : #accessing }
 APDocument >> evaluationReceiver [
 	"Return an object that is used as a receiver (self) in a codeblock (code snippet) evalution"
@@ -50,6 +72,19 @@ APDocument >> initializeWithName: aSymbol [
 { #category : #accessing }
 APDocument >> name [
 	^ name
+]
+
+{ #category : #workflow }
+APDocument >> runScript: aSymbol [
+	workflow perform: aSymbol
+]
+
+{ #category : #workflow }
+APDocument >> scriptNames [
+	^ ((Pragma allNamed: #apComputes: in: workflow class)
+			collect: [ :each | each method selector ])
+		asSet
+
 ]
 
 { #category : #accessing }

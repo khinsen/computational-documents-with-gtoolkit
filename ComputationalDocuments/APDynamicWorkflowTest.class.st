@@ -27,6 +27,16 @@ APDynamicWorkflowTest >> testDependencyChain [
 ]
 
 { #category : #tests }
+APDynamicWorkflowTest >> testErrorComputingMethodRequiresArguments [
+	| wf |
+	wf := APDynamicWorkflow new.
+	wf class addInstVarNamed: 'x'.
+	wf class compile: 'setX: anInteger <apComputes: #x> x := 42'.
+	"The first computation should raise an error"
+	self should: [ wf x ] raise: Error.
+]
+
+{ #category : #tests }
 APDynamicWorkflowTest >> testErrorTwoMethodsComputeSameVariable [
 	| wf |
 	wf := APDynamicWorkflow new.

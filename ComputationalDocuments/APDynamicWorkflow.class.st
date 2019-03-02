@@ -32,7 +32,10 @@ APDynamicWorkflow class >> addInstVarNamed: aString [
 		uniqueInstance ifNotNil:
 			[ (self slotNamed: varSymbol) initialize: uniqueInstance.
 			  uniqueInstance apObserveSlot: varSymbol ].
-		self compile: each , ' ^ self apCompute: #', each ]
+		self compile: each , ' self apCompute: #', each, '. ^ ', each ].
+
+	"Invalidate the cached computing methods dictionary"
+	uniqueInstance ifNotNil: [ uniqueInstance clearCachedState ]
 ]
 
 { #category : #testing }
@@ -49,12 +52,22 @@ APDynamicWorkflow class >> new [
 	^ subclass uniqueInstance
 ]
 
+{ #category : #'instance variables' }
+APDynamicWorkflow class >> removeInstVarNamed: aString [
+
+	"Invalidate the cached computing methods dictionary"
+	uniqueInstance ifNotNil: [ uniqueInstance clearCachedState ].
+
+	^ super removeInstVarNamed: aString.
+
+]
+
 { #category : #computation }
 APDynamicWorkflow >> apCompute: aSymbol [
 	self collectComputingMethods.
 	(apComputingMethods at: aSymbol)
-		valueWithReceiver: self arguments: Array new.
-	^ self readSlotNamed: aSymbol
+		valueWithReceiver: self arguments: Array new
+
 ]
 
 { #category : #'data access' }
@@ -122,18 +135,29 @@ APDynamicWorkflow >> apValueOf: aSymbol setTo: aValue [
 
 ]
 
-{ #category : #computation }
+{ #category : #dependencies }
+APDynamicWorkflow >> clearCachedState [
+	apComputingMethods := nil.
+]
+
+{ #category : #dependencies }
 APDynamicWorkflow >> collectComputingMethods [
 	| uncomputedInstVars computedUndeclaredVars |
+	apComputingMethods ifNotNil: [ ^ self ].
 	apComputingMethods := Dictionary new.
 	(Pragma allNamed: #apComputes: in: self class) do:
-		[ :each | apComputingMethods at: each arguments first
-					 ifPresent: [ :earlier |
-									  Error signal: 'Methods ', each method name,
-															' and ', earlier method name,
-															' both claim to compute ',
-															each arguments first ]
-					 ifAbsentPut: [ each method ] ].
+		[ :each |
+			each method numArgs > 0
+				ifTrue: [ Error signal: 'Method ', each method name,
+													' computes ', each arguments first,
+													' but requires arguments' ].
+			apComputingMethods at: each arguments first
+				ifPresent: [ :earlier |
+								  Error signal: 'Methods ', each method name,
+														' and ', earlier method name,
+														' both claim to compute ',
+														each arguments first ]
+				ifAbsentPut: [ each method ] ].
 	computedUndeclaredVars := apComputingMethods keys difference: self class instVarNames.
 	computedUndeclaredVars ifNotEmpty: [ Error signal: 'Variables computed but not declared: ',
 																		 (', ' join: computedUndeclaredVars) ].
@@ -148,4 +172,5 @@ APDynamicWorkflow >> initialize [
 	self class initializeSlots: self.
 	self apObserveAllSlots.
 	apDataDependencies := Dictionary new.
+	apComputingMethods := nil.
 ]

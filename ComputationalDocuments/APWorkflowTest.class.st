@@ -1,22 +1,22 @@
 Class {
-	#name : #APDynamicWorkflowTest,
+	#name : #APWorkflowTest,
 	#superclass : #TestCase,
 	#category : #'ComputationalDocuments-Tests'
 }
 
 { #category : #tests }
-APDynamicWorkflowTest >> testDataDefinitionAndRetrieval [
+APWorkflowTest >> testDataDefinitionAndRetrieval [
 	| wf |
-	wf := APDynamicWorkflow new.
+	wf := APWorkflow new.
 	wf class addInstVarNamed: 'x'.
 	wf class compile: 'setX <apComputes: #x> x := 42'.
 	self assert: wf x equals: 42.
 ]
 
 { #category : #tests }
-APDynamicWorkflowTest >> testDependencyChain [
+APWorkflowTest >> testDependencyChain [
 	| wf |
-	wf := APDynamicWorkflow new.
+	wf := APWorkflow new.
 	wf class addInstVarNamed: 'x y z'.
 	wf class compile: 'setX <apComputes: #x> x := 1'.
 	wf class compile: 'computeY <apComputes: #y> y := x + 1'.
@@ -27,9 +27,9 @@ APDynamicWorkflowTest >> testDependencyChain [
 ]
 
 { #category : #tests }
-APDynamicWorkflowTest >> testErrorComputingMethodRequiresArguments [
+APWorkflowTest >> testErrorComputingMethodRequiresArguments [
 	| wf |
-	wf := APDynamicWorkflow new.
+	wf := APWorkflow new.
 	wf class addInstVarNamed: 'x'.
 	wf class compile: 'setX: anInteger <apComputes: #x> x := 42'.
 	"The first computation should raise an error"
@@ -37,9 +37,9 @@ APDynamicWorkflowTest >> testErrorComputingMethodRequiresArguments [
 ]
 
 { #category : #tests }
-APDynamicWorkflowTest >> testErrorTwoMethodsComputeSameVariable [
+APWorkflowTest >> testErrorTwoMethodsComputeSameVariable [
 	| wf |
-	wf := APDynamicWorkflow new.
+	wf := APWorkflow new.
 	wf class addInstVarNamed: 'x'.
 	wf class compile: 'setX1 <apComputes: #x> x := 42'.
 	wf class compile: 'setX2 <apComputes: #x> x := 11'.
@@ -48,18 +48,18 @@ APDynamicWorkflowTest >> testErrorTwoMethodsComputeSameVariable [
 ]
 
 { #category : #tests }
-APDynamicWorkflowTest >> testErrorUncomputedInstVar [
+APWorkflowTest >> testErrorUncomputedInstVar [
 	| wf |
-	wf := APDynamicWorkflow new.
+	wf := APWorkflow new.
 	wf class addInstVarNamed: 'x y'.
 	wf class compile: 'setX <apComputes: #x> x := 1'.
 	self should: [ wf x ] raise: Error.
 ]
 
 { #category : #tests }
-APDynamicWorkflowTest >> testErrorUndeclaredComputedVar [
+APWorkflowTest >> testErrorUndeclaredComputedVar [
 	| wf |
-	wf := APDynamicWorkflow new.
+	wf := APWorkflow new.
 	wf class addInstVarNamed: 'x'.
 	wf class compile: 'setX <apComputes: #x> x := 1'.
 	wf class compile: 'setY <apComputes: #y> x := 1'.
@@ -67,9 +67,9 @@ APDynamicWorkflowTest >> testErrorUndeclaredComputedVar [
 ]
 
 { #category : #tests }
-APDynamicWorkflowTest >> testInstVarCreation [
+APWorkflowTest >> testInstVarCreation [
 	| wf |
-	wf := APDynamicWorkflow new.
+	wf := APWorkflow new.
 	wf class addInstVarNamed: 'x'.
 	self assert: (wf class slotNamed: #x) isObservableSlot.
 	self assert: ((wf observablePropertyNamed: #x) isKindOf: APValueHolder).

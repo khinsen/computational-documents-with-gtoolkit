@@ -1,5 +1,5 @@
 Class {
-	#name : #APDynamicWorkflow,
+	#name : #APWorkflow,
 	#superclass : #Object,
 	#traits : 'TAPData',
 	#classTraits : 'TAPData classTrait',
@@ -11,14 +11,14 @@ Class {
 }
 
 { #category : #'instance variables' }
-APDynamicWorkflow class >> addInstVarNamed: aString [
+APWorkflow class >> addInstVarNamed: aString [
 	"Override instance variable creation to make read and write access to all
 	instance variables observable. Notify the uniqueInstance of every change."
 
 	| newInstVarNames |
 
 	"Apply special treatment only to subclasses"
-	self = APDynamicWorkflow
+	self = APWorkflow
 		ifTrue: [ ^ super addInstVarNamed: aString ].
 
 	newInstVarNames := aString substrings.
@@ -37,26 +37,26 @@ APDynamicWorkflow class >> addInstVarNamed: aString [
 ]
 
 { #category : #testing }
-APDynamicWorkflow class >> isAbstract [
+APWorkflow class >> isAbstract [
 	^ true
 ]
 
 { #category : #'instance creation' }
-APDynamicWorkflow class >> new [
+APWorkflow class >> new [
 	self isAbstract
-		ifTrue: "self is APDynamicWorkflow"
+		ifTrue: "self is APWorkflow"
 			[ | subclass |
 			  subclass := self newAnonymousSubclass.
 			  subclass class compile: 'isAbstract ^ false'.
-			  subclass class compile: 'name ^ ''APDynamicWorkflow+'''.
+			  subclass class compile: 'name ^ ''APWorkflow+'''.
 			  ^ subclass new ]
-		ifFalse: "self is an anonymous subclass of APDynamicWorkflow"
+		ifFalse: "self is an anonymous subclass of APWorkflow"
 			[ ^ super new ]
 
 ]
 
 { #category : #'instance variables' }
-APDynamicWorkflow class >> removeInstVarNamed: aString [
+APWorkflow class >> removeInstVarNamed: aString [
 
 	"Invalidate cached state and put the new slot(s) under observation"
 	self allInstancesDo: [ :each | each apClearCachedState ].
@@ -66,14 +66,14 @@ APDynamicWorkflow class >> removeInstVarNamed: aString [
 ]
 
 { #category : #dependencies }
-APDynamicWorkflow >> apClearCachedState [
+APWorkflow >> apClearCachedState [
 	apComputingMethods := nil.
 	apDataDependencies := Dictionary new.
 
 ]
 
 { #category : #dependencies }
-APDynamicWorkflow >> apCollectComputingMethods [
+APWorkflow >> apCollectComputingMethods [
 	| uncomputedInstVars computedUndeclaredVars |
 	apComputingMethods ifNotNil: [ ^ self ].
 	apComputingMethods := Dictionary new.
@@ -99,7 +99,7 @@ APDynamicWorkflow >> apCollectComputingMethods [
 ]
 
 { #category : #computation }
-APDynamicWorkflow >> apCompute: aSymbol [
+APWorkflow >> apCompute: aSymbol [
 	self apCollectComputingMethods.
 	(apComputingMethods at: aSymbol)
 		valueWithReceiver: self arguments: Array new
@@ -107,7 +107,7 @@ APDynamicWorkflow >> apCompute: aSymbol [
 ]
 
 { #category : #'data access' }
-APDynamicWorkflow >> apComputedVariablesInThisContext [
+APWorkflow >> apComputedVariablesInThisContext [
 	| context computedVariables |
 	computedVariables := OrderedCollection new.
 	context := thisContext.
@@ -123,19 +123,19 @@ APDynamicWorkflow >> apComputedVariablesInThisContext [
 ]
 
 { #category : #dependencies }
-APDynamicWorkflow >> apMake: aVariable dependencyOf: dependentVariable [
+APWorkflow >> apMake: aVariable dependencyOf: dependentVariable [
 	(apDataDependencies at: dependentVariable ifAbsentPut: [ Set new ])
 		add: aVariable
 ]
 
 { #category : #'data access' }
-APDynamicWorkflow >> apObserveAllSlots [
+APWorkflow >> apObserveAllSlots [
 	self class slots do:
 		[ :slot | self apObserveSlot: slot name ]
 ]
 
 { #category : #'data access' }
-APDynamicWorkflow >> apObserveSlot: aSymbol [
+APWorkflow >> apObserveSlot: aSymbol [
 	self property: aSymbol
 		  whenReadDo:
 				[ self apReadAccessTo: aSymbol ].
@@ -145,7 +145,7 @@ APDynamicWorkflow >> apObserveSlot: aSymbol [
 ]
 
 { #category : #'data access' }
-APDynamicWorkflow >> apReadAccessTo: aSymbol [
+APWorkflow >> apReadAccessTo: aSymbol [
 	| variables |
 	variables := self apComputedVariablesInThisContext.
 	variables ifEmpty: [ ^ self ].
@@ -163,7 +163,7 @@ APDynamicWorkflow >> apReadAccessTo: aSymbol [
 ]
 
 { #category : #'data access' }
-APDynamicWorkflow >> apValueOf: aSymbol setTo: aValue [
+APWorkflow >> apValueOf: aSymbol setTo: aValue [
 	| variables |
 	variables := self apComputedVariablesInThisContext.
 	self assert: (variables includes: aSymbol)
@@ -172,7 +172,7 @@ APDynamicWorkflow >> apValueOf: aSymbol setTo: aValue [
 ]
 
 { #category : #initialization }
-APDynamicWorkflow >> initialize [
+APWorkflow >> initialize [
 	super initialize.
 	self class initializeSlots: self.
 	self apObserveAllSlots.

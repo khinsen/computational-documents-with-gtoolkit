@@ -65,7 +65,7 @@ APDocument >> gtDocumentFor: aView [
 APDocument >> initializeWithName: aSymbol [
 	name := aSymbol.
 	story := ''.
-	workflow := APDynamicWorkflow new.
+	workflow := APWorkflow new.
 
 ]
 

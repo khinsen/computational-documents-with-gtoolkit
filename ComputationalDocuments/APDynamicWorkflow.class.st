@@ -1,8 +1,8 @@
 Class {
 	#name : #APDynamicWorkflow,
 	#superclass : #Object,
-	#traits : 'TSingleton + TAPData',
-	#classTraits : 'TSingleton classTrait + TAPData classTrait',
+	#traits : 'TAPData',
+	#classTraits : 'TAPData classTrait',
 	#instVars : [
 		'apDataDependencies',
 		'apComputingMethods'
@@ -29,13 +29,11 @@ APDynamicWorkflow class >> addInstVarNamed: aString [
 		| varSymbol |
 		varSymbol := each asSymbol.
 		self addSlot: (APDataSlot named: varSymbol).
-		uniqueInstance ifNotNil:
-			[ (self slotNamed: varSymbol) initialize: uniqueInstance.
-			  uniqueInstance apObserveSlot: varSymbol ].
 		self compile: each , ' self apCompute: #', each, '. ^ ', each ].
 
-	"Invalidate the cached computing methods dictionary"
-	uniqueInstance ifNotNil: [ uniqueInstance apClearCachedState ]
+	"Invalidate cached state and put the new slot(s) under observation"
+	self allInstancesDo: [ :each | each apClearCachedState. each apObserveAllSlots ].
+
 ]
 
 { #category : #testing }
@@ -45,18 +43,23 @@ APDynamicWorkflow class >> isAbstract [
 
 { #category : #'instance creation' }
 APDynamicWorkflow class >> new [
-	| subclass |
-	subclass := self newAnonymousSubclass.
-	subclass class compile: 'isAbstract ^ false'.
-	subclass class compile: 'name ^ ''APDynamicWorkflow+'''.
-	^ subclass uniqueInstance
+	self isAbstract
+		ifTrue: "self is APDynamicWorkflow"
+			[ | subclass |
+			  subclass := self newAnonymousSubclass.
+			  subclass class compile: 'isAbstract ^ false'.
+			  subclass class compile: 'name ^ ''APDynamicWorkflow+'''.
+			  ^ subclass new ]
+		ifFalse: "self is an anonymous subclass of APDynamicWorkflow"
+			[ ^ super new ]
+
 ]
 
 { #category : #'instance variables' }
 APDynamicWorkflow class >> removeInstVarNamed: aString [
 
-	"Invalidate the cached computing methods dictionary"
-	uniqueInstance ifNotNil: [ uniqueInstance apClearCachedState ].
+	"Invalidate cached state and put the new slot(s) under observation"
+	self allInstancesDo: [ :each | each apClearCachedState ].
 
 	^ super removeInstVarNamed: aString.
 
@@ -122,13 +125,13 @@ APDynamicWorkflow >> apComputedVariablesInThisContext [
 { #category : #dependencies }
 APDynamicWorkflow >> apMake: aVariable dependencyOf: dependentVariable [
 	(apDataDependencies at: dependentVariable ifAbsentPut: [ Set new ])
-		dependencies add: aVariable
+		add: aVariable
 ]
 
 { #category : #'data access' }
 APDynamicWorkflow >> apObserveAllSlots [
 	self class slots do:
-		[ :slot | self apObserveSlot: slot ]
+		[ :slot | self apObserveSlot: slot name ]
 ]
 
 { #category : #'data access' }

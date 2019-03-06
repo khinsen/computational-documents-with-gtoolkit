@@ -67,12 +67,20 @@ APWorkflowTest >> testErrorUndeclaredComputedVar [
 ]
 
 { #category : #tests }
-APWorkflowTest >> testInstVarCreation [
+APWorkflowTest >> testInstVarAndScriptCreation [
 	| wf |
 	wf := APWorkflow new.
+	
 	wf class addInstVarNamed: 'x'.
 	self assert: (wf class slotNamed: #x) isObservableSlot.
 	self assert: ((wf observablePropertyNamed: #x) isKindOf: APValueHolder).
+	self assert: wf class workflowMethods isEmpty.
+	self assert: (wf class methods select: [ :each | each protocol = 'generated']) size equals: 1.
 	"There is no method for computing x, so access to x is an error."
 	self should: [ wf x ] raise: Error.
+	
+	wf class compile: 'setX <apComputes: #x> x := 42'.
+	self assert: wf class workflowMethods size equals: 1.
+	self assert: (wf class methods select: [ :each | each protocol = 'generated']) size equals: 1.
+
 ]

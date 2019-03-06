@@ -29,7 +29,8 @@ APWorkflow class >> addInstVarNamed: aString [
 		| varSymbol |
 		varSymbol := each asSymbol.
 		self addSlot: (APDataSlot named: varSymbol).
-		self compile: each , ' self apCompute: #', each, '. ^ ', each ].
+		self compile: each , ' self apCompute: #', each, '. ^ ', each.
+		(self compiledMethodAt: varSymbol) protocol: 'generated' ].
 
 	"Invalidate cached state and put the new slot(s) under observation"
 	self allInstancesDo: [ :each | each apClearCachedState. each apObserveAllSlots ].
@@ -61,8 +62,17 @@ APWorkflow class >> removeInstVarNamed: aString [
 	"Invalidate cached state and put the new slot(s) under observation"
 	self allInstancesDo: [ :each | each apClearCachedState ].
 
+	"Remove the auto-generated accessor method"
+	self removeSelector: aString asSymbol.
+
+	"Remove the slot"
 	^ super removeInstVarNamed: aString.
 
+]
+
+{ #category : #'accessing-methods' }
+APWorkflow class >> workflowMethods [
+	^ self methods select: [ :each | each protocol ~= 'generated' and: [ each selector ~= #initialize ] ]
 ]
 
 { #category : #dependencies }

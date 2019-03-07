@@ -39,6 +39,22 @@ APDocumentTest >> testDependencyChain [
 ]
 
 { #category : #tests }
+APDocumentTest >> testEquality [
+	| d1 d2 |
+	d1 := APDocument name: #foo.
+	d1 defineDatasetNamed: #x.
+	d1 defineScript: 'setX <apComputes: #x> x := 42'.
+	self assert: (d1 datasetNamed: #x) equals: 42.
+
+	d2 := APDocument name: #foo.
+	d2 defineDatasetNamed: #x.
+	d2 defineScript: 'setX <apComputes: #x> x := 42'.
+	self assert: (d2 datasetNamed: #x) equals: 42.
+
+	self assert: d1 equals: d2.
+]
+
+{ #category : #tests }
 APDocumentTest >> testErrorComputingMethodRequiresArguments [
 	| d |
 	d := APDocument name: #foo.

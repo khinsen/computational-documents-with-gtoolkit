@@ -75,6 +75,25 @@ APWorkflow class >> workflowMethods [
 	^ self methods select: [ :each | each protocol ~= 'generated' and: [ each selector ~= #initialize ] ]
 ]
 
+{ #category : #comparing }
+APWorkflow >> = anObject [
+	| instVarNames |
+	(anObject class inheritsFrom: APWorkflow) ifFalse: [ ^ false ].
+	instVarNames := self class instVarNames.
+	instVarNames = anObject class instVarNames ifFalse: [ ^ false ].	
+	instVarNames
+		detect:
+			[ :name | (self readSlotNamed: name) ~= (anObject readSlotNamed: name) ]
+		ifFound: [ ^ false ].
+	self class workflowMethods
+		detect:
+			[ :method |
+				method sourceCode ~= (anObject class methodNamed: method selector) sourceCode ]
+		ifFound: [ ^ false ].
+	^ true
+
+]
+
 { #category : #dependencies }
 APWorkflow >> apClearCachedState [
 	apComputingMethods := nil.
@@ -195,6 +214,20 @@ APWorkflow >> fuelAccept: aGeneralMapper [
 	^ aGeneralMapper
 		visitSubstitution: self
 		by: { slotValues. methods }
+]
+
+{ #category : #comparing }
+APWorkflow >> hash [
+	| instVarNames hash |
+	instVarNames := self class instVarNames.
+	hash := instVarNames hash.
+	instVarNames do:
+		[ :name |
+			hash := hash bitXor: (self readSlotNamed: name) hash ].
+	self class workflowMethods do:
+		[ :method | hash bitXor: method sourceCode hash ].
+	^ hash
+
 ]
 
 { #category : #initialization }

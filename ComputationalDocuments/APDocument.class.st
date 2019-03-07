@@ -1,10 +1,12 @@
 Class {
 	#name : #APDocument,
 	#superclass : #Object,
+	#traits : 'EqualityThroughVariables',
+	#classTraits : 'EqualityThroughVariables classTrait',
 	#instVars : [
+		'name',
 		'story',
-		'workflow',
-		'name'
+		'workflow'
 	],
 	#category : #ComputationalDocuments
 }

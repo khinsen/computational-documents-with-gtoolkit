@@ -27,6 +27,22 @@ APWorkflowTest >> testDependencyChain [
 ]
 
 { #category : #tests }
+APWorkflowTest >> testEquality [
+	| wf1 wf2 |
+	wf1 := APWorkflow new.
+	wf1 class addInstVarNamed: 'x'.
+	wf1 class compile: 'setX <apComputes: #x> x := 42'.
+	self assert: wf1 x equals: 42.
+
+	wf2 := APWorkflow new.
+	wf2 class addInstVarNamed: 'x'.
+	wf2 class compile: 'setX <apComputes: #x> x := 42'.
+	self assert: wf2 x equals: 42.
+
+	self assert: wf1 equals: wf2
+]
+
+{ #category : #tests }
 APWorkflowTest >> testErrorComputingMethodRequiresArguments [
 	| wf |
 	wf := APWorkflow new.

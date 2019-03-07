@@ -48,7 +48,7 @@ APLibraryTest >> testErrorRemoveNonexistentDocument [
 ]
 
 { #category : #tests }
-APLibraryTest >> testStoreDocument [
+APLibraryTest >> testStoreAndRetrieveDocument [
 	| d retrieved |
 
 	d := APDocument name: #foo.
@@ -60,5 +60,5 @@ APLibraryTest >> testStoreDocument [
 	library storeDocumentNamed: #foo.
 
 	retrieved := library retrieveDocumentNamed: #foo.
-
+	self assert: retrieved equals: d
 ]

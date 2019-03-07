@@ -49,9 +49,16 @@ APLibraryTest >> testErrorRemoveNonexistentDocument [
 
 { #category : #tests }
 APLibraryTest >> testStoreDocument [
-	| d |
+	| d retrieved |
+
 	d := APDocument name: #foo.
+	d defineDatasetNamed: #x.
+	d defineScript: 'setX <apComputes: #x> x := 42'.
+	self assert: (d datasetNamed: #x) equals: 42.
+
 	library add: d.
 	library storeDocumentNamed: #foo.
+
+	retrieved := library retrieveDocumentNamed: #foo.
 
 ]

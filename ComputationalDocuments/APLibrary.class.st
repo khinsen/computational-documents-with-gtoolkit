@@ -32,6 +32,11 @@ APLibrary >> documentNamed: aSymbol [
 					ifAbsent: [ self error: 'No document named ', aSymbol ]
 ]
 
+{ #category : #files }
+APLibrary >> filenameForDocumentNamed: aSymbol [
+	^ aSymbol, '.fuel'
+]
+
 { #category : #initialization }
 APLibrary >> initialize [
 	documents := Dictionary new.
@@ -43,6 +48,16 @@ APLibrary >> removeDocumentNamed: aSymbol [
 				 ifAbsent: [ self error: 'No document named ', aSymbol ]
 ]
 
+{ #category : #files }
+APLibrary >> retrieveDocumentNamed: aSymbol [
+	self filenameForDocumentNamed: aSymbol.
+	^ (directory / (self filenameForDocumentNamed: aSymbol))
+		binaryReadStreamDo:
+			[ :stream |
+					(FLMaterializer newDefault
+						materializeFrom: stream) root ].
+]
+
 { #category : #accessing }
 APLibrary >> size [
 	^ documents size
@@ -50,9 +65,7 @@ APLibrary >> size [
 
 { #category : #files }
 APLibrary >> store: anAPDocument [
-	| filename |
-	filename := anAPDocument name, '.fuel'.
-	(directory / filename)
+	(directory / (self filenameForDocumentNamed: anAPDocument name))
 		binaryWriteStreamDo: [ :stream | FLSerializer serialize: anAPDocument on: stream ]
 	
 ]

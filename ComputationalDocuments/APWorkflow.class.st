@@ -129,6 +129,7 @@ APWorkflow >> apComputedVariablesInThisContext [
 					select: [ :p | p selector = #apComputes: ]
 					thenDo: [ :p | computedVariables add: p arguments first ].
 			  context := context sender ] ].
+	computedVariables ifEmpty: [ ^ nil ].
 	^ computedVariables
 ]
 
@@ -158,7 +159,7 @@ APWorkflow >> apObserveSlot: aSymbol [
 APWorkflow >> apReadAccessTo: aSymbol [
 	| variables |
 	variables := self apComputedVariablesInThisContext.
-	variables ifEmpty: [ ^ self ].
+	variables ifNil: [ ^ self ].
 	"Read access by the defining method requires no action."
 	variables first = aSymbol ifTrue: [ ^ self ].
 	"If the defining method is in the list, but not in the first place, there is
@@ -176,9 +177,24 @@ APWorkflow >> apReadAccessTo: aSymbol [
 APWorkflow >> apValueOf: aSymbol setTo: aValue [
 	| variables |
 	variables := self apComputedVariablesInThisContext.
+	variables ifNil: [ ^ self ].
 	self assert: (variables includes: aSymbol)
 		  description: 'Unauthorized attempt to modify variable ' , aSymbol asString.
 
+]
+
+{ #category : #serialization }
+APWorkflow >> fuelAccept: aGeneralMapper [
+	| slotValues methods |
+	slotValues := Dictionary new.
+	self class localSlots
+		do: [ :slot | slotValues at: slot name put: (slot read: self) ].
+	methods := self class workflowMethods
+		collect: [ :method | method sourceCode ].
+
+	^ aGeneralMapper
+		visitSubstitution: self
+		by: { slotValues. methods }
 ]
 
 { #category : #initialization }

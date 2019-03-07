@@ -45,6 +45,19 @@ APDocument >> evaluationReceiver [
 	^ workflow
 ]
 
+{ #category : #initialization }
+APDocument >> fuelAfterMaterialization [
+	| slotValues methods |
+	slotValues := workflow at: 1.
+	methods := workflow at: 2.
+	workflow := APWorkflow new.
+	slotValues keysDo:
+		[ :slotName | workflow class addInstVarNamed: slotName asString ].
+	slotValues keysAndValuesDo:
+		[ :slotName :value | (workflow class slotNamed: slotName) write: value to: workflow ].
+	methods do: [ :each | workflow class compile: each ]
+]
+
 { #category : #accessing }
 APDocument >> gtDocumentFor: aView [
 	<gtView>

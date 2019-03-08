@@ -10,8 +10,7 @@ Class {
 { #category : #running }
 APLibraryTest >> setUp [
 	super setUp.
-	library := APLibrary new.
-	library useMemoryFilesystem
+	library := APLibrary inMemoryFilesystem
 ]
 
 { #category : #running }
@@ -48,6 +47,26 @@ APLibraryTest >> testErrorRemoveNonexistentDocument [
 ]
 
 { #category : #tests }
+APLibraryTest >> testScanDirectory [
+	| d l |
+
+	#(foo bar) do:
+		[ :name |
+		  d := APDocument name: name.
+		  d defineDatasetNamed: #x.
+		  d defineScript: 'setX <apComputes: #x> x := 42'.
+		  self assert: (d datasetNamed: #x) equals: 42.
+		  library add: d.
+		  d store ].
+
+	l := APLibrary inMemoryFilesystem.
+	self assert: l size equals: 2.
+	l documentNames do:
+		[ :name | self assert: (l retrieveDocumentNamed: name)
+							equals: (library retrieveDocumentNamed: name) ]
+]
+
+{ #category : #tests }
 APLibraryTest >> testStoreAndRetrieveDocument [
 	| d retrieved |
 
@@ -57,7 +76,7 @@ APLibraryTest >> testStoreAndRetrieveDocument [
 	self assert: (d datasetNamed: #x) equals: 42.
 
 	library add: d.
-	library storeDocumentNamed: #foo.
+	d store.
 
 	retrieved := library retrieveDocumentNamed: #foo.
 	self assert: retrieved equals: d

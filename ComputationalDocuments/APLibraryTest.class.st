@@ -50,7 +50,7 @@ APLibraryTest >> testErrorRemoveNonexistentDocument [
 APLibraryTest >> testScanDirectory [
 	| d l |
 
-	#(foo bar) do:
+	#(foo bar baz quux) do:
 		[ :name |
 		  d := APDocument name: name.
 		  d defineDatasetNamed: #x.
@@ -60,7 +60,7 @@ APLibraryTest >> testScanDirectory [
 		  d store ].
 
 	l := APLibrary inMemoryFilesystem.
-	self assert: l size equals: 2.
+	self assert: l size equals: 4.
 	l documentNames do:
 		[ :name | self assert: (l retrieveDocumentNamed: name)
 							equals: (library retrieveDocumentNamed: name) ]

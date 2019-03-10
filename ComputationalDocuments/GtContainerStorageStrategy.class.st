@@ -1,6 +1,6 @@
 Class {
-	#name : #Gt2ContainerStorageStrategy,
-	#superclass : #Gt2StorageStrategy,
+	#name : #GtContainerStorageStrategy,
+	#superclass : #GtStorageStrategy,
 	#instVars : [
 		'container'
 	],
@@ -8,61 +8,61 @@ Class {
 }
 
 { #category : #accessing }
-Gt2ContainerStorageStrategy >> basename [
+GtContainerStorageStrategy >> basename [
 	"Return a string representing the document filename"
 	<return: #String>
 	^ self name, '.', GtFileUtilityConstants pillarExtension
 ]
 
 { #category : #accessing }
-Gt2ContainerStorageStrategy >> container [
+GtContainerStorageStrategy >> container [
 	^ container
 ]
 
 { #category : #accessing }
-Gt2ContainerStorageStrategy >> container: aContainer [
+GtContainerStorageStrategy >> container: aContainer [
 	container := aContainer
 ]
 
 { #category : #accessing }
-Gt2ContainerStorageStrategy >> evaluationReceiver [
+GtContainerStorageStrategy >> evaluationReceiver [
 	"Return an object that is used as a receiver (self) in a codeblock (code snippet) evalution"
 	<return: #Object>
 	^ self container evaluationReceiver
 ]
 
 { #category : #testing }
-Gt2ContainerStorageStrategy >> exists [
+GtContainerStorageStrategy >> exists [
 	<return: #Boolean>
 	^ self container isNotNil
 ]
 
 { #category : #accessing }
-Gt2ContainerStorageStrategy >> name [
+GtContainerStorageStrategy >> name [
 	"Return a string representing the stored document"
 	<return: #String>
 	^ self container name
 ]
 
 { #category : #actions }
-Gt2ContainerStorageStrategy >> read: aGt2Document [ 
+GtContainerStorageStrategy >> read: aGtDocument [ 
 	self 
 		assert: [ self container notNil ]
 		description: [ 'Container must be non-nil to store a document there' ].
-	aGt2Document text: self container storyNamed: #Main
+	aGtDocument text: self container storyNamed: #Main
 ]
 
 { #category : #accessing }
-Gt2ContainerStorageStrategy >> rootDirectory [
+GtContainerStorageStrategy >> rootDirectory [
 	<return: #FileReference>
 	^ FileSystem workingDirectory
 ]
 
 { #category : #actions }
-Gt2ContainerStorageStrategy >> store: aGt2Document [
+GtContainerStorageStrategy >> store: aGtDocument [
 	self 
 		assert: [ self container notNil ]
 		description: [ 'Container must be non-nil to store a document there' ].
-	self container storyNamed: #Main text: aGt2Document text asString
+	self container storyNamed: #Main text: aGtDocument text asString
 	
 ]

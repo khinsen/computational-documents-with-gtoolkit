@@ -18,8 +18,8 @@ ComputationalDocument >> evaluationReceiver [
 ComputationalDocument >> gtDocumentFor: aView [
 	<gtView>
 	| aDocument |
-	aDocument := Gt2Document new
-					strategy: (Gt2ContainerStorageStrategy new container: self);
+	aDocument := GtDocument new
+					strategy: (GtContainerStorageStrategy new container: self);
 					read. 
 	^ (aDocument gtTextFor: aView)
 		title: 'Story';

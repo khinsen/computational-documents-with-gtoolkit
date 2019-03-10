@@ -1,5 +1,5 @@
 "
-I am a proxy object that wraps the evaluationReceiver in a PRCodeblock. My only purpose is to redefine #gtViewsFor:inContext: in such a way that a return value of self is made invisible in a Gt2Document.
+I am a proxy object that wraps the evaluationReceiver in a PRCodeblock. My only purpose is to redefine #gtViewsFor:inContext: in such a way that a return value of self is made invisible in a GtDocument.
 "
 Class {
 	#name : #APEvaluationReceiverProxy,

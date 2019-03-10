@@ -66,22 +66,6 @@ APDocument >> fuelAfterMaterialization [
 	methods do: [ :each | data class compile: each ]
 ]
 
-{ #category : #accessing }
-APDocument >> gtDocumentFor: aView [
-	<gtView>
-	| aDocument |
-	aDocument := Gt2Document new
-					strategy: (Gt2ContainerStorageStrategy new container: self);
-					read. 
-	^ (aDocument gtTextFor: aView)
-		title: 'Story';
-		priority: -1;
-		action: [ :anAction | 
-			aDocument gtSaveActionFor: anAction ];
-		action: [ :anAction | 
-			aDocument gtShowMarkupActionFor: anAction ]
-]
-
 { #category : #initialization }
 APDocument >> initializeWithName: aSymbol [
 	name := aSymbol.

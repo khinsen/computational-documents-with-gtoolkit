@@ -33,7 +33,11 @@ APWorkflow class >> addInstVarNamed: aString [
 		(self compiledMethodAt: varSymbol) protocol: 'generated' ].
 
 	"Invalidate cached state and put the new slot(s) under observation"
-	self allInstancesDo: [ :each | each apClearCachedState. each apObserveAllSlots ].
+	self allInstancesDo:
+		[ :each |
+			self initializeSlots: each.
+			each apClearCachedState.
+			each apObserveAllSlots ].
 
 ]
 

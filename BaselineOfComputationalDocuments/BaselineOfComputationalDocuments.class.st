@@ -14,5 +14,11 @@ BaselineOfComputationalDocuments >> baseline: spec [
 			with: [ spec repository: 'github://guillep/ObservableSlots:master/src' ].
 
 		spec
-			package: 'ComputationalDocuments' ].
+			baseline: 'EqualityThroughVariablesTrait' 
+			with: [ spec repository: 'github://khinsen/EqualityThroughVariablesTrait:master/src' ].
+
+		spec
+			package: 'ComputationalDocuments'
+                        with: [ spec requires: #('ObservableSlot'
+						'EqualityThroughVariablesTrait')] ].
 ]

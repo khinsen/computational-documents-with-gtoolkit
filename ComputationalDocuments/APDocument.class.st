@@ -85,7 +85,7 @@ APDocument >> gtDocumentFor: aView [
 { #category : #initialization }
 APDocument >> initializeWithName: aSymbol [
 	name := aSymbol.
-	stories := ''.
+	stories := Dictionary with: #Main -> ''.
 	data := APWorkflow new.
 
 ]
@@ -109,6 +109,14 @@ APDocument >> library: anAPLibrary [
 { #category : #accessing }
 APDocument >> name [
 	^ name
+]
+
+{ #category : #printing }
+APDocument >> printOn: aStream [
+	super printOn: aStream.
+	aStream nextPut: $(.
+	name printOn: aStream.
+	aStream nextPut: $).
 ]
 
 { #category : #workflow }

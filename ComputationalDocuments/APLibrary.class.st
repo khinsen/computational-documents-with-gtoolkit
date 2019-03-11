@@ -26,7 +26,7 @@ APLibrary class >> inMemoryFilesystem [
 	^ self directory: FileSystem currentMemoryFileSystem root / 'activepapers'
 ]
 
-{ #category : #accessing }
+{ #category : #operations }
 APLibrary >> add: anAPDocument [
 	documents at: anAPDocument name
 				 ifPresent: [ self error: 'Document name #', anAPDocument name, ' already in use' ]
@@ -58,6 +58,19 @@ APLibrary >> fileReferenceForDocumentNamed: aSymbol [
 	^ directory / (aSymbol, '.fuel')
 ]
 
+{ #category : #inspecting }
+APLibrary >> gtDocumentsFor: aView [
+	<gtView>
+
+	^ aView list
+		title: 'Documents' translated;
+		priority: 50;
+		items: [ self lazyDocuments ];
+		itemFormat: [ :each | each name ];
+		actionButtonIcon: BrGlamorousIcons add asElement
+			action: [ :aButton | self newUnnamedDocument ].
+]
+
 { #category : #initializing }
 APLibrary >> initializeWithDirectory: aDirectory [
 	directory := aDirectory.
@@ -66,7 +79,46 @@ APLibrary >> initializeWithDirectory: aDirectory [
 	self scanDirectory
 ]
 
-{ #category : #accessing }
+{ #category : #inspecting }
+APLibrary >> lazyDocuments [
+	| lazyDocuments |
+	lazyDocuments := documents copy.
+	lazyDocuments keysDo:
+		[ :name |
+			(lazyDocuments at: name)
+				ifNil: [ lazyDocuments at: name
+											  put: (APDocumentProxy name: name library: self) ] ].
+	^ lazyDocuments values
+]
+
+{ #category : #operations }
+APLibrary >> newDocumentNamed: aSymbol [
+	| document |
+	document := APDocument name: aSymbol.
+	self add: document.
+	^ document
+]
+
+{ #category : #operations }
+APLibrary >> newUnnamedDocument [
+	| number name |
+	number := 0.
+	[ number := number + 1.
+	  name := 'Unnamed-', number asString.
+	  documents includesKey: name asSymbol ]
+	whileTrue.
+	self newDocumentNamed: name
+]
+
+{ #category : #printing }
+APLibrary >> printOn: aStream [
+	super printOn: aStream.
+	aStream nextPut: $(.
+	directory path printOn: aStream.
+	aStream nextPut: $).
+]
+
+{ #category : #operations }
 APLibrary >> removeDocumentNamed: aSymbol [
 	documents removeKey: aSymbol
 				 ifAbsent: [ self error: 'No document named ', aSymbol ]

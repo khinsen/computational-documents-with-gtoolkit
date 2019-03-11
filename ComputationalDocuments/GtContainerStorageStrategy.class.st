@@ -49,7 +49,7 @@ GtContainerStorageStrategy >> read: aGtDocument [
 	self 
 		assert: [ self container notNil ]
 		description: [ 'Container must be non-nil to store a document there' ].
-	aGtDocument text: self container storyNamed: #Main
+	aGtDocument text: (self container storyNamed: #Main)
 ]
 
 { #category : #accessing }
@@ -63,6 +63,7 @@ GtContainerStorageStrategy >> store: aGtDocument [
 	self 
 		assert: [ self container notNil ]
 		description: [ 'Container must be non-nil to store a document there' ].
-	self container storyNamed: #Main text: aGtDocument text asString
+	self container storyNamed: #Main text: aGtDocument text asString.
+	self container store
 	
 ]

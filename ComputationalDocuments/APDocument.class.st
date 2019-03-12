@@ -7,7 +7,8 @@ Class {
 		'name',
 		'library',
 		'data',
-		'stories'
+		'stories',
+		'rawData'
 	],
 	#category : #ComputationalDocuments
 }
@@ -58,7 +59,7 @@ APDocument >> fuelAfterMaterialization [
 	| slotValues methods |
 	slotValues := data at: 1.
 	methods := data at: 2.
-	data := APWorkflow new.
+	data := APWorkflow name: name.
 	slotValues keysDo:
 		[ :slotName | data class addInstVarNamed: slotName asString ].
 	slotValues keysAndValuesDo:
@@ -86,7 +87,7 @@ APDocument >> gtDocumentFor: aView [
 APDocument >> initializeWithName: aSymbol [
 	name := aSymbol.
 	stories := Dictionary with: #Main -> ''.
-	data := APWorkflow new.
+	data := APWorkflow name: aSymbol.
 
 ]
 

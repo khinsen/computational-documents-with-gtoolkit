@@ -47,16 +47,16 @@ APWorkflow class >> isAbstract [
 ]
 
 { #category : #'instance creation' }
-APWorkflow class >> new [
+APWorkflow class >> name: aSymbol [
 	self isAbstract
 		ifTrue: "self is APWorkflow"
 			[ | subclass |
 			  subclass := self newAnonymousSubclass.
 			  subclass class compile: 'isAbstract ^ false'.
-			  subclass class compile: 'name ^ ''APWorkflow+'''.
+			  subclass class compile: 'name ^ ''APWorkflowFor', aSymbol , ''''.
 			  ^ subclass new ]
 		ifFalse: "self is an anonymous subclass of APWorkflow"
-			[ ^ super new ]
+			[ ^ self error: 'Instances are created using ''APWorkflow name: #aSymbol''' ]
 
 ]
 

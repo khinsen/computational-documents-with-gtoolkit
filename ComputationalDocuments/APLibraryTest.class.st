@@ -30,6 +30,25 @@ APLibraryTest >> testAddAndRemoveDocument [
 ]
 
 { #category : #tests }
+APLibraryTest >> testCreateStoreAndRetrieveBigDocument [
+	| d retrieved |
+
+	d := library newDocumentNamed: #FluDataset.
+	d defineDatasetNamed: #rawData.
+	d defineDatasetNamed: #retrievalDateAndTime.
+	d defineScript: 'downloadRawData
+	<apComputes: #rawData>
+	<apComputes: #retrievalDatAndTime>
+	rawData := ''http://www.sentiweb.fr/datasets/incidence-PAY-3.csv'' asZnUrl retrieveContents.
+	retrievalDataAndTime := DateAndTime now.'.
+	d runScript: #downloadRawData.
+	d store.
+
+	retrieved := library retrieveDocumentNamed: #FluDataset.
+	self assert: retrieved equals: d
+]
+
+{ #category : #tests }
 APLibraryTest >> testErrorAddMultipleDocumentsWithSameName [
 	| d1 d2 |
 	d1 := APDocument name: #foo.

@@ -126,11 +126,7 @@ APLibrary >> removeDocumentNamed: aSymbol [
 
 { #category : #files }
 APLibrary >> retrieveDocumentNamed: aSymbol [
-	^ (self fileReferenceForDocumentNamed: aSymbol)
-		binaryReadStreamDo:
-			[ :stream |
-					(FLMaterializer newDefault
-						materializeFrom: stream) root ].
+	^ APDocument fromFile: (self fileReferenceForDocumentNamed: aSymbol)
 ]
 
 { #category : #files }
@@ -155,7 +151,6 @@ APLibrary >> store: anAPDocument inFile: aFileReference [
 { #category : #files }
 APLibrary >> storeDocumentNamed: aSymbol [
 	documents at: aSymbol
-		ifPresent: [ :d | self store: d
-									 inFile: 	(self fileReferenceForDocumentNamed: d name) ]
+		ifPresent: [ :d | d storeInFile: (self fileReferenceForDocumentNamed: d name) ]
 		ifAbsent: [ self error: 'No document named ', aSymbol ]
 ]

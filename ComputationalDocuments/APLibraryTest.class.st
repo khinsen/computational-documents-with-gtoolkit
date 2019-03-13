@@ -49,6 +49,27 @@ APLibraryTest >> testCreateStoreAndRetrieveBigDocument [
 ]
 
 { #category : #tests }
+APLibraryTest >> testCreateStoreAndRetrieveDocument [
+	| d l2 retrieved |
+
+	d := library newDocumentNamed: #FluDataset.
+	d defineDatasetNamed: #rawData.
+	d defineDatasetNamed: #retrievalDateAndTime.
+	d defineScript: 'downloadRawData
+	<apComputes: #rawData>
+	<apComputes: #retrievalDateAndTime>
+	"To keep the test free of network access, we just record the URL"
+	rawData := ''http://www.sentiweb.fr/datasets/incidence-PAY-3.csv''.
+	retrievalDateAndTime := DateAndTime now.'.
+	d runScript: #downloadRawData.
+	d store.
+
+	l2 := APLibrary inMemoryFilesystem.
+	retrieved := l2 retrieveDocumentNamed: #FluDataset.
+	self assert: retrieved equals: d
+]
+
+{ #category : #tests }
 APLibraryTest >> testErrorAddMultipleDocumentsWithSameName [
 	| d1 d2 |
 	d1 := APDocument name: #foo.

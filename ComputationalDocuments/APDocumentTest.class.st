@@ -96,3 +96,26 @@ APDocumentTest >> testErrorUndeclaredComputedVar [
 	"The first computation should raise an error"
 	self should: [ d datasetNamed: #x ] raise: Error.
 ]
+
+{ #category : #tests }
+APDocumentTest >> testStoreAndRetrieve [
+	| tempFile document retrieved |
+
+	tempFile := FileSystem currentMemoryFileSystem root / 'temp.fuel'.
+
+	document := APDocument name: #FluDataset.
+	document defineDatasetNamed: #rawData.
+	document defineDatasetNamed: #retrievalDateAndTime.
+	document defineScript: 'downloadRawData
+	<apComputes: #rawData>
+	<apComputes: #retrievalDateAndTime>
+	"To keep the test free of network access, we just record the URL"
+	rawData := ''http://www.sentiweb.fr/datasets/incidence-PAY-3.csv''.
+	retrievalDateAndTime := DateAndTime now.'.
+	document runScript: #downloadRawData.
+	document storeInFile: tempFile.
+
+	retrieved := APDocument fromFile: tempFile.
+	self assert: document equals: retrieved.
+	tempFile delete.
+]

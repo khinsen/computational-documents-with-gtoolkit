@@ -7,11 +7,27 @@ Class {
 		'name',
 		'library',
 		'data',
-		'stories',
-		'rawData'
+		'stories'
 	],
 	#category : #ComputationalDocuments
 }
+
+{ #category : #'instance creation' }
+APDocument class >> fromFile: aFuelFileReference [
+	| document |
+	document := aFuelFileReference
+						binaryReadStreamDo:
+							[ :stream |
+									(FLMaterializer newDefault
+										materializeFrom: stream) root ].
+	self assert: (document isMemberOf: self).
+	^ document
+]
+
+{ #category : #'fuel support' }
+APDocument class >> fuelIgnoredInstanceVariableNames [
+	^#(library)
+]
 
 { #category : #'instance creation' }
 APDocument class >> name: aSymbol [
@@ -138,6 +154,14 @@ APDocument >> store [
 	library
 		ifNotNil: [ library storeDocumentNamed: self name ]
 		ifNil: [ self error: 'This document is not part of any library' ]
+]
+
+{ #category : #persistence }
+APDocument >> storeInFile: aFileReference [
+	aFileReference
+		binaryWriteStreamDo:
+			[ :stream | FLSerializer serialize: self on: stream ]
+
 ]
 
 { #category : #accessing }

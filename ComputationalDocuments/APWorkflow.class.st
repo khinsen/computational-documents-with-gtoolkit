@@ -141,8 +141,9 @@ APWorkflow >> apCompute: aSymbol [
 
 { #category : #'data access' }
 APWorkflow >> apComputedVariablesInThisContext [
-	| context computedVariables |
-	computedVariables := OrderedCollection new.
+	| computedVariables level context |
+	computedVariables := Dictionary new.
+	level := 1.
 	context := thisContext.
 	[ context isNil ] whileFalse:
 		[ context := context findContextSuchThat:
@@ -150,9 +151,9 @@ APWorkflow >> apComputedVariablesInThisContext [
 		  context ifNotNil:
 			[ context method pragmas
 					select: [ :p | p selector = #apComputes: ]
-					thenDo: [ :p | computedVariables add: p arguments first ].
-			  context := context sender ] ].
-	computedVariables ifEmpty: [ ^ nil ].
+					thenDo: [ :p | computedVariables at: p arguments first ifAbsentPut: level ].
+			  context := context sender.
+			  level := level + 1 ] ].
 	^ computedVariables
 ]
 
@@ -182,26 +183,28 @@ APWorkflow >> apObserveSlot: aSymbol [
 APWorkflow >> apReadAccessTo: aSymbol [
 	| variables |
 	variables := self apComputedVariablesInThisContext.
-	variables ifNil: [ ^ self ].
+	variables ifEmpty: [ ^ self ].
 	"Read access by the defining method requires no action."
-	variables first = aSymbol ifTrue: [ ^ self ].
+	variables at: aSymbol ifPresent: [ :level | level = 1 ifTrue: [ ^ self ] ].
 	"If the defining method is in the list, but not in the first place, there is
 	 a cycle in the data dependency graph."
-	self assert: (variables includes: aSymbol) not
+	self assert: (variables includesKey: aSymbol) not
 		  description: 'Cyclic data dependency:',
 							aSymbol,
 							' -> ',
-							(' -> ' join: variables).
-	"Otherwise, record a dependency."
-	self apMake: aSymbol dependencyOf: variables first
+							(' -> ' join: variables keys).
+	"Otherwise, record a dependency for variable being computed."
+	variables keysAndValuesDo:
+		[ :v :l | l = 1 ifTrue: [ self apMake: aSymbol dependencyOf: v ] ]
+	
 ]
 
 { #category : #'data access' }
 APWorkflow >> apValueOf: aSymbol setTo: aValue [
 	| variables |
 	variables := self apComputedVariablesInThisContext.
-	variables ifNil: [ ^ self ].
-	self assert: (variables includes: aSymbol)
+	variables ifEmpty: [ ^ self ].
+	self assert: (variables includesKey: aSymbol)
 		  description: 'Unauthorized attempt to modify variable ' , aSymbol asString.
 
 ]

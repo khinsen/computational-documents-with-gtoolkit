@@ -133,6 +133,9 @@ APWorkflow >> apCollectComputingMethods [
 
 { #category : #computation }
 APWorkflow >> apCompute: aSymbol [
+	"If the slot holds a non-nil value, consider the data available.
+	 TODO: Should be replaced by an explicit validity flag stored in APValueHolder."
+	(self instVarNamed: aSymbol) value ifNotNil: [ ^ self ]. 
 	self apCollectComputingMethods.
 	(apComputingMethods at: aSymbol)
 		valueWithReceiver: self arguments: Array new
@@ -155,6 +158,16 @@ APWorkflow >> apComputedVariablesInThisContext [
 			  context := context sender.
 			  level := level + 1 ] ].
 	^ computedVariables
+]
+
+{ #category : #dependencies }
+APWorkflow >> apComputingMethods [
+	^ apComputingMethods
+]
+
+{ #category : #dependencies }
+APWorkflow >> apDataDependencies [
+	^ apDataDependencies
 ]
 
 { #category : #dependencies }

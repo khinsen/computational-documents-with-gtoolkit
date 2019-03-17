@@ -126,7 +126,10 @@ APLibrary >> removeDocumentNamed: aSymbol [
 
 { #category : #files }
 APLibrary >> retrieveDocumentNamed: aSymbol [
-	^ APDocument fromFile: (self fileReferenceForDocumentNamed: aSymbol)
+	| document |
+	document := APDocument fromFuelFile: (self fileReferenceForDocumentNamed: aSymbol).
+	document library: self.
+	^ document
 ]
 
 { #category : #files }

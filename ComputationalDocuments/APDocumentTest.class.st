@@ -5,6 +5,19 @@ Class {
 }
 
 { #category : #tests }
+APDocumentTest >> testAddingSlotDoesNotChangeValueOfExistingSlot [
+	| d |
+	d := APDocument name: #foo.
+	d defineDatasetNamed: #x.
+	d defineScript: 'setX <apComputes: #x> x := 42'.
+	self assert: (d datasetNamed: #x) equals: 42.
+	d defineDatasetNamed: #y.
+	d defineScript: 'setY <apComputes: #y> y := 1'.
+	self assert: (d datasetNamed: #x) equals: 42.
+
+]
+
+{ #category : #tests }
 APDocumentTest >> testDataDefinitionAndRetrieval [
 	| d |
 	d := APDocument name: #foo.
@@ -28,8 +41,8 @@ APDocumentTest >> testDependencyChain [
 	d runScript: #computeY.
 	d runScript: #computeZ.
 
-	self assert: d scriptNames equals: #(computeX computeY computeZ) asSet.
-	self assert: d datasetNames equals: #(x y z) asSet.
+	self assert: d scriptNames equals: #(computeX computeY computeZ).
+	self assert: d datasetNames equals: #(x y z).
 
 	self assert: (d datasetNamed: #x) equals: 1.
 	self assert: (d datasetNamed: #y) equals: 2.
@@ -115,7 +128,7 @@ APDocumentTest >> testStoreAndRetrieve [
 	document runScript: #downloadRawData.
 	document storeInFile: tempFile.
 
-	retrieved := APDocument fromFile: tempFile.
+	retrieved := APDocument fromFuelFile: tempFile.
 	self assert: document equals: retrieved.
 	tempFile delete.
 ]

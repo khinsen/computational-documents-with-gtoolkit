@@ -13,7 +13,7 @@ Class {
 }
 
 { #category : #'instance creation' }
-APDocument class >> fromFile: aFuelFileReference [
+APDocument class >> fromFuelFile: aFuelFileReference [
 	| document |
 	document := aFuelFileReference
 						binaryReadStreamDo:
@@ -50,7 +50,18 @@ APDocument >> datasetNamed: aSymbol [
 
 { #category : #workflow }
 APDocument >> datasetNames [
-	^ data class instVarNames asSet
+	^ data class instVarNames
+
+]
+
+{ #category : #workflow }
+APDocument >> datasets [
+	"Return a dictionary mapping dataset names to APValueHolders"
+	| d |
+	d := Dictionary new.
+	self datasetNames
+		do: [ :dsName | d at: dsName put: (self data instVarNamed: dsName) ].
+	^ d
 ]
 
 { #category : #workflow }
@@ -83,7 +94,7 @@ APDocument >> fuelAfterMaterialization [
 	methods do: [ :each | data class compile: each ]
 ]
 
-{ #category : #accessing }
+{ #category : #inspecting }
 APDocument >> gtDocumentFor: aView [
 	<gtView>
 	| aDocument |
@@ -91,12 +102,33 @@ APDocument >> gtDocumentFor: aView [
 					strategy: (GtContainerStorageStrategy new container: self);
 					read. 
 	^ (aDocument gtTextFor: aView)
-		title: 'Story';
+		title: 'Description' translated;
 		priority: -1;
 		action: [ :anAction | 
 			aDocument gtSaveActionFor: anAction ];
 		action: [ :anAction | 
 			aDocument gtShowMarkupActionFor: anAction ]
+]
+
+{ #category : #inspecting }
+APDocument >> gtMethodsFor: aView [
+	<gtView>
+	^ aView explicit
+		title: 'Methods' translated;
+		priority: 2;
+		stencil: [ (APWorkflowMethodsCoder forObject: self data) asElement ]
+]
+
+{ #category : #inspecting }
+APDocument >> gtWorkflowViewFor: aView [
+	<gtView>
+	^ aView mondrian
+		title: 'Workflow' translated;
+		priority: 1;
+		painting:
+			[ :view |
+				self workflowViewFor: view.
+				view layout custom: (GtGradVerticalDominanceTreeLayout new). ]
 ]
 
 { #category : #initialization }
@@ -143,9 +175,13 @@ APDocument >> runScript: aSymbol [
 
 { #category : #workflow }
 APDocument >> scriptNames [
-	^ ((Pragma allNamed: #apComputes: in: data class)
-			collect: [ :each | each method selector ])
-		asSet
+	^ self scripts collect: #selector
+]
+
+{ #category : #workflow }
+APDocument >> scripts [
+	^ data class methods
+		select: [ :each | (each pragmas collect: #selector) includes: #apComputes: ]
 
 ]
 
@@ -172,4 +208,61 @@ APDocument >> storyNamed: aSymbol [
 { #category : #accessing }
 APDocument >> storyNamed: aSymbol text: aString [
 	stories at: aSymbol put: aString
+]
+
+{ #category : #inspecting }
+APDocument >> workflowViewFor: aView [
+	| scriptsForData edges |
+	self data apCollectComputingMethods.
+	scriptsForData := self data apComputingMethods.
+	aView nodes
+		shape:
+			[ :x |
+				BlTextElement new
+					text: x key asRopedText;
+					padding:
+						(BlInsets
+							top: 5
+							right: 5
+							bottom: 5
+							left: 5) ];
+		with: self datasets associations.
+	aView nodes
+		shape:
+			[ :x |
+				BlTextElement new
+					text: x selector asRopedText;
+					padding:
+						(BlInsets
+							top: 5
+							right: 5
+							bottom: 5
+							left: 5) ];
+		with: self scripts.
+	edges := OrderedCollection new.
+	self data apDataDependencies
+		keysAndValuesDo:
+			[ :var :dependencies |
+				| methodForVar |
+				methodForVar := scriptsForData at: var.
+				dependencies do:
+					[ :each |
+						edges add: { self datasets associationAt: each. methodForVar }.
+						edges add: { methodForVar. self datasets associationAt: var } ] ].
+	self scripts
+		do: [ :each |
+				each pragmas
+					select: [ :p | p selector = #apComputes: ]
+					thenDo: [ :p | edges add:
+										{ each. self datasets associationAt: p arguments first } ] ].
+	aView edges
+		shape: [ :x | 
+			BlLineElement new
+				toHead: (BlArrowheadSimpleArrow new
+							border: (BlBorder paint: Color gray width: 1));
+				border: (BlBorder paint: Color gray width: 1) ];
+		fromCenterBottom;
+		toCenterTop;
+		connect: edges from: #first to: #second.
+
 ]

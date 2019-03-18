@@ -83,15 +83,17 @@ APDocument >> evaluationReceiver [
 
 { #category : #initialization }
 APDocument >> fuelAfterMaterialization [
-	| slotValues methods |
+	| slotValues methods dataDependencies |
 	slotValues := data at: 1.
 	methods := data at: 2.
+	dataDependencies := data at: 3.
 	data := APWorkflow name: name.
 	slotValues keysDo:
 		[ :slotName | data class addInstVarNamed: slotName asString ].
 	slotValues keysAndValuesDo:
 		[ :slotName :value | (data class slotNamed: slotName) write: value to: data ].
-	methods do: [ :each | data class compile: each ]
+	methods do: [ :each | data class compile: each ].
+	data restoreDataDependenciesTo: dataDependencies
 ]
 
 { #category : #inspecting }

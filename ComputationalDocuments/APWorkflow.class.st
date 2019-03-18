@@ -233,7 +233,7 @@ APWorkflow >> fuelAccept: aGeneralMapper [
 
 	^ aGeneralMapper
 		visitSubstitution: self
-		by: { slotValues. methods }
+		by: { slotValues. methods. apDataDependencies }
 ]
 
 { #category : #comparing }
@@ -257,4 +257,10 @@ APWorkflow >> initialize [
 	self apObserveAllSlots.
 	self apClearCachedState.
 
+]
+
+{ #category : #dependencies }
+APWorkflow >> restoreDataDependenciesTo: aDictionary [
+	"Used only to restore dependencies from a serialized APDocument"
+	apDataDependencies := aDictionary
 ]

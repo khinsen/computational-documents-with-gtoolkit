@@ -213,22 +213,29 @@ APDocument >> storyNamed: aSymbol text: aString [
 
 { #category : #inspecting }
 APDocument >> workflowViewFor: aView [
-	| scriptsForData datasets textbox edges |
+	| scriptsForData datasets textBox roundedTextBox edges |
 	self data apCollectComputingMethods.
 	scriptsForData := self data apComputingMethods.
 	datasets := self datasets.
-	textbox := [ :text :color |
+	textBox := [ :text |
 					BlTextElement new
-						text: text asRopedText;
-						padding: (BlInsets top: 5 right: 5 bottom: 5 left: 5);
+						text: (text asRopedText thin fontSize: 25);
+						padding: (BlInsets top: 10 right: 10 bottom: 10 left: 10);
+						border: (BlBorder builder width: 2; paint: Color black; build)  ].
+	roundedTextBox := [ :text | (textBox value: text) geometry: (BlRectangle cornerRadius: 20) ].
+"	textbox := [ :text :color |
+					BlTextElement new
+						geometry: (BlRectangle cornerRadius: 20);
+						text: (text asRopedText thin fontSize: 25);
+						padding: (BlInsets top: 10 right: 10 bottom: 10 left: 10);
 						border: (BlBorder builder width: 2; paint: color; build) ].
-	aView nodes
+"	aView nodes
 		shape:
-			[ :x | textbox value: x name value: Color blue ];
+			[ :x | roundedTextBox value: x name ];
 		with: datasets values.
 	aView nodes
 		shape:
-			[ :x | textbox value: x selector value: (Color r: 0 g: 0.4 b: 0) ];
+			[ :x | textBox value: x selector ];
 		with: self scripts.
 	edges := OrderedCollection new.
 	self data apDataDependencies

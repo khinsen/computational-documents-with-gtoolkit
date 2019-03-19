@@ -7,6 +7,6 @@ Class {
 { #category : #initialization }
 APDataSlot >> initialize: anObject [
 
-	self rawWrite: (APValueHolder value: nil) to: anObject
+	self rawWrite: (APValueHolder new name: name) to: anObject
 
 ]

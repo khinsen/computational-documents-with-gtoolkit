@@ -6,12 +6,27 @@ Class {
 
 { #category : #tests }
 APValueHolderTest >> testChange [
-	| valueHolder fired |
-	valueHolder := APValueHolder value: 'word'.
+	| valueHolder time fired |
+	time := DateAndTime now.
+	valueHolder := APValueHolder new.
+	self deny: valueHolder isValid.
+
+	valueHolder name: #foo.
+	self assert: valueHolder name = #foo.
+
+	valueHolder value: 'word'.
+	self assert: valueHolder isValid.
 	self assert: valueHolder value equals: 'word'.
+	self assert: valueHolder timeStamp >= time.
+	self assert: valueHolder timeStamp <= DateAndTime now.
+
+	valueHolder invalidate.
+	self deny: valueHolder isValid.
+
 	fired := false.
 	valueHolder whenChangedDo: [ fired := true ].
 	valueHolder value: 'new'.
+	self assert: valueHolder isValid.
 	self assert: fired.
 	self assert: valueHolder value equals: 'new'
 ]

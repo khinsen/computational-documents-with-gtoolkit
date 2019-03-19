@@ -137,8 +137,7 @@ APDocument >> gtWorkflowViewFor: aView [
 APDocument >> initializeWithName: aSymbol [
 	name := aSymbol.
 	stories := Dictionary with: #Main -> ''.
-	data := APWorkflow name: aSymbol.
-
+	data := APWorkflow name: aSymbol
 ]
 
 { #category : #comparing }
@@ -214,21 +213,22 @@ APDocument >> storyNamed: aSymbol text: aString [
 
 { #category : #inspecting }
 APDocument >> workflowViewFor: aView [
-	| scriptsForData edges |
+	| scriptsForData datasets edges |
 	self data apCollectComputingMethods.
 	scriptsForData := self data apComputingMethods.
+	datasets := self datasets.
 	aView nodes
 		shape:
 			[ :x |
 				BlTextElement new
-					text: x key asRopedText;
+					text: x name asRopedText;
 					padding:
 						(BlInsets
 							top: 5
 							right: 5
 							bottom: 5
 							left: 5) ];
-		with: self datasets associations.
+		with: datasets values.
 	aView nodes
 		shape:
 			[ :x |
@@ -249,8 +249,8 @@ APDocument >> workflowViewFor: aView [
 				methodForVar := scriptsForData at: var.
 				dependencies do:
 					[ :each |
-						edges add: { self datasets associationAt: each. methodForVar }.
-						edges add: { methodForVar. self datasets associationAt: var } ] ].
+						edges add: { datasets at: each. methodForVar }.
+						edges add: { methodForVar. datasets at: var } ] ].
 	self scripts
 		do: [ :each |
 				each pragmas

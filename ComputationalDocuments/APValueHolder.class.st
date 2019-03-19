@@ -9,6 +9,14 @@ Class {
 	#category : #'ComputationalDocuments-Slots'
 }
 
+{ #category : #inspecting }
+APValueHolder >> gtViewsFor: aView inContext: aContext [
+	| view |
+	view := value gtViewsFor: aView inContext: aContext.
+	view label: (String streamContents: [ :stream | self printOn: stream ]).
+	^ view
+]
+
 { #category : #initialization }
 APValueHolder >> initialize [
 	super initialize.
@@ -33,6 +41,23 @@ APValueHolder >> name [
 { #category : #initialization }
 APValueHolder >> name: aSymbol [
 	name := aSymbol
+]
+
+{ #category : #printing }
+APValueHolder >> printOn: aStream [
+	self isValid
+		ifTrue:
+			 [ 	aStream nextPutAll: 'Dataset '.
+				aStream nextPutAll: self name.
+				aStream nextPutAll: ': '.
+				aStream print: self value.
+				aStream nextPutAll: ' (time stamp: '.
+				aStream print: self timeStamp.
+				aStream nextPutAll: ')'. ]
+		ifFalse:
+			 [ 	aStream nextPutAll: 'Invalid dataset '.
+				aStream nextPutAll: self name. ]
+
 ]
 
 { #category : #accessing }

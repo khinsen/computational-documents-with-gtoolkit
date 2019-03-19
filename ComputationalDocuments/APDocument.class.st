@@ -213,33 +213,22 @@ APDocument >> storyNamed: aSymbol text: aString [
 
 { #category : #inspecting }
 APDocument >> workflowViewFor: aView [
-	| scriptsForData datasets edges |
+	| scriptsForData datasets textbox edges |
 	self data apCollectComputingMethods.
 	scriptsForData := self data apComputingMethods.
 	datasets := self datasets.
+	textbox := [ :text :color |
+					BlTextElement new
+						text: text asRopedText;
+						padding: (BlInsets top: 5 right: 5 bottom: 5 left: 5);
+						border: (BlBorder builder width: 2; paint: color; build) ].
 	aView nodes
 		shape:
-			[ :x |
-				BlTextElement new
-					text: x name asRopedText;
-					padding:
-						(BlInsets
-							top: 5
-							right: 5
-							bottom: 5
-							left: 5) ];
+			[ :x | textbox value: x name value: Color blue ];
 		with: datasets values.
 	aView nodes
 		shape:
-			[ :x |
-				BlTextElement new
-					text: x selector asRopedText;
-					padding:
-						(BlInsets
-							top: 5
-							right: 5
-							bottom: 5
-							left: 5) ];
+			[ :x | textbox value: x selector value: (Color r: 0 g: 0.4 b: 0) ];
 		with: self scripts.
 	edges := OrderedCollection new.
 	self data apDataDependencies

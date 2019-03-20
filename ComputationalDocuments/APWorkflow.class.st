@@ -224,16 +224,22 @@ APWorkflow >> apValueOf: aSymbol setTo: aValue [
 
 { #category : #serialization }
 APWorkflow >> fuelAccept: aGeneralMapper [
-	| slotValues methods |
-	slotValues := Dictionary new.
+	| slotContents methods |
+	slotContents := Dictionary new.
 	self class localSlots
-		do: [ :slot | slotValues at: slot name put: (slot read: self) ].
+		do: [ :slot |
+				| valueHolder |
+				valueHolder := slot rawRead: self.
+				slotContents at: slot name
+								 put: { valueHolder isValid.
+										  valueHolder value.
+										  valueHolder timeStamp } ].
 	methods := self class workflowMethods
 		collect: [ :method | method sourceCode ].
 
 	^ aGeneralMapper
 		visitSubstitution: self
-		by: { slotValues. methods. apDataDependencies }
+		by: { slotContents. methods. apDataDependencies }
 ]
 
 { #category : #comparing }

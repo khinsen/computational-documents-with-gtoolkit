@@ -23,7 +23,7 @@ APValueHolder >> initialize [
 	valid := false
 ]
 
-{ #category : #updating }
+{ #category : #accessing }
 APValueHolder >> invalidate [
 	valid := false
 ]
@@ -58,6 +58,18 @@ APValueHolder >> printOn: aStream [
 			 [ 	aStream nextPutAll: 'Invalid dataset '.
 				aStream nextPutAll: self name. ]
 
+]
+
+{ #category : #accessing }
+APValueHolder >> restoreState: anArray [
+	valid := anArray at: 1.
+	value := anArray at: 2.
+	timeStamp := anArray at: 3.
+]
+
+{ #category : #accessing }
+APValueHolder >> state [
+	^ { valid. value. timeStamp }
 ]
 
 { #category : #accessing }

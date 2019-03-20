@@ -216,25 +216,38 @@ APDocument >> storyNamed: aSymbol text: aString [
 
 { #category : #inspecting }
 APDocument >> workflowViewFor: aMondrian [
-	| scriptsForData datasets textBox roundedTextBox edges |
+	| scriptsForData datasets inBox inRoundedBox edges |
 	self data apCollectComputingMethods.
 	scriptsForData := self data apComputingMethods.
 	datasets := self datasets.
-	textBox := [ :text |
-					BlTextElement new
-						text: (text asRopedText thin fontSize: 8);
-						padding: (BlInsets all: 8);
-						border: (BlBorder builder width: 2; paint: Color black; build)  ].
-	roundedTextBox := [ :text | (textBox value: text) geometry: (BlRectangle cornerRadius: 20) ].
+	inBox := [ :element |
+					element padding: (BlInsets all: 8);
+							  border: (BlBorder builder width: 1; paint: Color black; build) ].
+	inRoundedBox := [ :element | (inBox value: element) geometry: (BlRectangle cornerRadius: 20) ].
 	"The dataset nodes"
 	aMondrian nodes
 		shape:
-			[ :x | roundedTextBox value: x name ];
+			[ :x |
+				| datasetName timeStamp |
+				datasetName := x name asRopedText fontSize: 8.
+				x isValid
+					ifTrue: [ timeStamp := x timeStamp asRopedText fontSize: 6.
+								 inRoundedBox value:
+									(BlElement new
+										layout: (BlLinearLayout vertical cellSpacing: 5);
+										constraintsDo: [ :c | 
+									     c horizontal fitContent.
+									     c vertical fitContent ];
+										addChildren:
+											{ BlTextElement new text: datasetName.
+											  BlTextElement new text: timeStamp }) ]
+					ifFalse: [ datasetName foreground: Color red.
+								  inRoundedBox value: (BlTextElement new text: datasetName)  ] ];
 		with: datasets values.
 	"The script nodes"
 	aMondrian nodes
 		shape:
-			[ :x | textBox value: x selector ];
+			[ :x | inBox value: (BlTextElement new text: (x selector asRopedText fontSize: 8))];
 		with: self scripts.
 	edges := OrderedCollection new.
 	"The edges from datasets to scripts"

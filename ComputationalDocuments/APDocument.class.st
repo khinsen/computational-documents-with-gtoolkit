@@ -212,32 +212,29 @@ APDocument >> storyNamed: aSymbol text: aString [
 ]
 
 { #category : #inspecting }
-APDocument >> workflowViewFor: aView [
+APDocument >> workflowViewFor: aMondrian [
 	| scriptsForData datasets textBox roundedTextBox edges |
 	self data apCollectComputingMethods.
 	scriptsForData := self data apComputingMethods.
 	datasets := self datasets.
 	textBox := [ :text |
 					BlTextElement new
-						text: (text asRopedText thin fontSize: 25);
-						padding: (BlInsets top: 10 right: 10 bottom: 10 left: 10);
+						text: (text asRopedText thin fontSize: 8);
+						padding: (BlInsets all: 8);
 						border: (BlBorder builder width: 2; paint: Color black; build)  ].
 	roundedTextBox := [ :text | (textBox value: text) geometry: (BlRectangle cornerRadius: 20) ].
-"	textbox := [ :text :color |
-					BlTextElement new
-						geometry: (BlRectangle cornerRadius: 20);
-						text: (text asRopedText thin fontSize: 25);
-						padding: (BlInsets top: 10 right: 10 bottom: 10 left: 10);
-						border: (BlBorder builder width: 2; paint: color; build) ].
-"	aView nodes
+	"The dataset nodes"
+	aMondrian nodes
 		shape:
 			[ :x | roundedTextBox value: x name ];
 		with: datasets values.
-	aView nodes
+	"The script nodes"
+	aMondrian nodes
 		shape:
 			[ :x | textBox value: x selector ];
 		with: self scripts.
 	edges := OrderedCollection new.
+	"The edges from datasets to scripts"
 	self data apDataDependencies
 		keysAndValuesDo:
 			[ :var :dependencies |
@@ -245,15 +242,16 @@ APDocument >> workflowViewFor: aView [
 				methodForVar := scriptsForData at: var.
 				dependencies do:
 					[ :each |
-						edges add: { datasets at: each. methodForVar }.
-						edges add: { methodForVar. datasets at: var } ] ].
+						edges add: { datasets at: each. methodForVar } ] ].
+	"The edges from scripts to datasets"
 	self scripts
 		do: [ :each |
 				each pragmas
 					select: [ :p | p selector = #apComputes: ]
 					thenDo: [ :p | edges add:
-										{ each. self datasets associationAt: p arguments first } ] ].
-	aView edges
+										{ each. self datasets at: p arguments first } ] ].
+	"The greaphical representation of the edges"
+	aMondrian edges
 		shape: [ :x | 
 			BlLineElement new
 				toHead: (BlArrowheadSimpleArrow new

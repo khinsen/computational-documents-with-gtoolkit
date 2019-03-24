@@ -19,7 +19,7 @@ ComputationalDocument >> gtDocumentFor: aView [
 	<gtView>
 	| aDocument |
 	aDocument := GtDocument new
-					strategy: (GtContainerStorageStrategy new container: self);
+					strategy: (APContainerStorageStrategy new container: self);
 					read. 
 	^ (aDocument gtTextFor: aView)
 		title: 'Story';

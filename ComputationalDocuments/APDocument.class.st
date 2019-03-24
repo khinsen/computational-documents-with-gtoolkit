@@ -36,6 +36,18 @@ APDocument class >> name: aSymbol [
 			yourself
 ]
 
+{ #category : #parsing }
+APDocument >> codeBlocksInStories [
+	| collector |
+	collector := APCodeBlockVisitor new.
+	stories valuesDo:
+		[ :text |
+			| parsedText |
+			parsedText := PRPillarParser new optimize parse: text.
+			parsedText accept: collector ].
+	^ collector labelledCodeBlocks
+]
+
 { #category : #accessing }
 APDocument >> data [
 	^ data
@@ -104,7 +116,7 @@ APDocument >> gtDocumentFor: aView [
 	<gtView>
 	| aDocument |
 	aDocument := GtDocument new
-					strategy: (GtContainerStorageStrategy new container: self);
+					strategy: (APContainerStorageStrategy new container: self);
 					read. 
 	^ (aDocument gtTextFor: aView)
 		title: 'Description' translated;
@@ -157,6 +169,11 @@ APDocument >> library [
 { #category : #accessing }
 APDocument >> library: anAPLibrary [
 	library := anAPLibrary
+]
+
+{ #category : #accessing }
+APDocument >> methodDefinitionFromString: aString [
+	^ self data class methodNamed: aString asSymbol
 ]
 
 { #category : #accessing }

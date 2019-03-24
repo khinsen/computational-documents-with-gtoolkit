@@ -1,5 +1,5 @@
 Class {
-	#name : #GtContainerStorageStrategy,
+	#name : #APContainerStorageStrategy,
 	#superclass : #GtStorageStrategy,
 	#instVars : [
 		'container'
@@ -8,44 +8,49 @@ Class {
 }
 
 { #category : #accessing }
-GtContainerStorageStrategy >> basename [
+APContainerStorageStrategy >> basename [
 	"Return a string representing the document filename"
 	<return: #String>
 	^ self name, '.', GtFileUtilityConstants pillarExtension
 ]
 
 { #category : #accessing }
-GtContainerStorageStrategy >> container [
+APContainerStorageStrategy >> container [
 	^ container
 ]
 
 { #category : #accessing }
-GtContainerStorageStrategy >> container: aContainer [
+APContainerStorageStrategy >> container: aContainer [
 	container := aContainer
 ]
 
 { #category : #accessing }
-GtContainerStorageStrategy >> evaluationReceiver [
+APContainerStorageStrategy >> evaluationReceiver [
 	"Return an object that is used as a receiver (self) in a codeblock (code snippet) evalution"
 	<return: #Object>
 	^ self container evaluationReceiver
 ]
 
 { #category : #testing }
-GtContainerStorageStrategy >> exists [
+APContainerStorageStrategy >> exists [
 	<return: #Boolean>
 	^ self container isNotNil
 ]
 
 { #category : #accessing }
-GtContainerStorageStrategy >> name [
+APContainerStorageStrategy >> methodDefinitionFromString: aString [
+	^ self container methodDefinitionFromString: aString
+]
+
+{ #category : #accessing }
+APContainerStorageStrategy >> name [
 	"Return a string representing the stored document"
 	<return: #String>
 	^ self container name
 ]
 
 { #category : #actions }
-GtContainerStorageStrategy >> read: aGtDocument [ 
+APContainerStorageStrategy >> read: aGtDocument [ 
 	self 
 		assert: [ self container notNil ]
 		description: [ 'Container must be non-nil to store a document there' ].
@@ -53,13 +58,13 @@ GtContainerStorageStrategy >> read: aGtDocument [
 ]
 
 { #category : #accessing }
-GtContainerStorageStrategy >> rootDirectory [
+APContainerStorageStrategy >> rootDirectory [
 	<return: #FileReference>
 	^ FileSystem workingDirectory
 ]
 
 { #category : #actions }
-GtContainerStorageStrategy >> store: aGtDocument [
+APContainerStorageStrategy >> store: aGtDocument [
 	self 
 		assert: [ self container notNil ]
 		description: [ 'Container must be non-nil to store a document there' ].

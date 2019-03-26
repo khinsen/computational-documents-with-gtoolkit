@@ -7,7 +7,9 @@ Class {
 		'name',
 		'library',
 		'data',
-		'stories'
+		'stories',
+		'parsedStories',
+		'gtDocuments'
 	],
 	#category : #ComputationalDocuments
 }
@@ -34,18 +36,6 @@ APDocument class >> name: aSymbol [
 	^self basicNew
 			initializeWithName: aSymbol;
 			yourself
-]
-
-{ #category : #parsing }
-APDocument >> codeBlocksInStories [
-	| collector |
-	collector := APCodeBlockVisitor new.
-	stories valuesDo:
-		[ :text |
-			| parsedText |
-			parsedText := PRPillarParser new optimize parse: text.
-			parsedText accept: collector ].
-	^ collector labelledCodeBlocks
 ]
 
 { #category : #accessing }
@@ -152,6 +142,9 @@ APDocument >> gtWorkflowViewFor: aView [
 APDocument >> initializeWithName: aSymbol [
 	name := aSymbol.
 	stories := Dictionary with: #Main -> ''.
+	parsedStories := Dictionary new.
+	self parseStory: #Main.
+	gtDocuments := Dictionary new.
 	data := APWorkflow name: aSymbol
 ]
 
@@ -181,6 +174,14 @@ APDocument >> name [
 	^ name
 ]
 
+{ #category : #parsing }
+APDocument >> parseStory: aSymbol [
+	| parser |
+	parser := PRPillarParser new optimize.
+	parsedStories at: aSymbol
+					  put: (parser parse: (stories at: aSymbol))
+]
+
 { #category : #printing }
 APDocument >> printOn: aStream [
 	super printOn: aStream.
@@ -206,6 +207,15 @@ APDocument >> scripts [
 
 ]
 
+{ #category : #parsing }
+APDocument >> scriptsInStories [
+	| visitor |
+	visitor := APCodeBlockVisitor new.
+	parsedStories valuesDo:
+		[ :parsedDocument | parsedDocument accept: visitor ].
+	^ visitor labelledCodeBlocks
+]
+
 { #category : #persistence }
 APDocument >> store [
 	library
@@ -228,7 +238,8 @@ APDocument >> storyNamed: aSymbol [
 
 { #category : #accessing }
 APDocument >> storyNamed: aSymbol text: aString [
-	stories at: aSymbol put: aString
+	stories at: aSymbol put: aString.
+	self parseStory: aSymbol
 ]
 
 { #category : #inspecting }

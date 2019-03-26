@@ -23,5 +23,6 @@ APCodeBlockVisitor >> visitCodeblock: aCodeBlock [
 	aCodeBlock hasLabel ifTrue:
 		[ labelledCodeBlocks at: aCodeBlock label
 									ifPresent: [ self error: 'redefinition of code block ', aCodeBlock label ]
-									ifAbsentPut: [ aCodeBlock ] ]
+									ifAbsentPut: [ aCodeBlock ] ].
+	super visitCodeblock: aCodeBlock
 ]

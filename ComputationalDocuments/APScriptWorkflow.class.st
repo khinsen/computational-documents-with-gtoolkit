@@ -54,10 +54,10 @@ APScriptWorkflow class >> name: aSymbol [
 			[ | subclass |
 			  subclass := self newAnonymousSubclass.
 			  subclass class compile: 'isAbstract ^ false'.
-			  subclass class compile: 'name ^ ''APWorkflowFor', aSymbol , ''''.
+			  subclass class compile: 'name ^ ''APScriptWorkflowFor', aSymbol , ''''.
 			  ^ subclass new ]
 		ifFalse: "self is an anonymous subclass of APWorkflow"
-			[ ^ self error: 'Instances are created using ''APWorkflow name: #aSymbol''' ]
+			[ ^ self error: 'Instances are created using ''APScriptWorkflow name: #aSymbol''' ]
 
 ]
 
@@ -104,6 +104,13 @@ APScriptWorkflow >> apClearCachedState [
 	apComputingScripts := nil.
 	apDataDependencies := Dictionary new.
 
+]
+
+{ #category : #dependencies }
+APScriptWorkflow >> apCompute: aSymbol [
+	"If the slot holds a non-nil value, consider the data available.
+	 TODO: Should be replaced by an explicit validity flag stored in APValueHolder."
+	self flag: 'todo'
 ]
 
 { #category : #'data access' }
@@ -169,6 +176,11 @@ APScriptWorkflow >> apReadAccessTo: aSymbol [
 	variables keysAndValuesDo:
 		[ :v :l | l = 1 ifTrue: [ self apMake: aSymbol dependencyOf: v ] ]
 	
+]
+
+{ #category : #'data access' }
+APScriptWorkflow >> apValueHolderFor: aSymbol [
+	^ (self class slotNamed: aSymbol) rawRead: self
 ]
 
 { #category : #'data access' }

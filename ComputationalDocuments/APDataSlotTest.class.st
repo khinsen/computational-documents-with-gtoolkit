@@ -12,6 +12,16 @@ APDataSlotTest >> setUp [
 ]
 
 { #category : #tests }
+APDataSlotTest >> testDoubleInitializationDoesNotEraseValues [
+	point x: 5.
+	point y: 2.
+	point class initializeSlots: point.
+	self assert: point x equals: 5.
+	self assert: point y equals: 2.
+
+]
+
+{ #category : #tests }
 APDataSlotTest >> testExplicitReadNotificationRaisesEventExactlyOnce [
 
 	| count |

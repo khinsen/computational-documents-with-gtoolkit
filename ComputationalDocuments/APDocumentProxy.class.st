@@ -8,7 +8,7 @@ Class {
 		'library',
 		'document'
 	],
-	#category : #ComputationalDocuments
+	#category : #'ComputationalDocuments-Obsolete'
 }
 
 { #category : #'instance creation' }

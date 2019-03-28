@@ -106,43 +106,6 @@ APScriptWorkflow >> apClearCachedState [
 
 ]
 
-{ #category : #dependencies }
-APScriptWorkflow >> apCollectComputingMethods [
-	| uncomputedInstVars computedUndeclaredVars |
-	apComputingScripts ifNotNil: [ ^ self ].
-	apComputingScripts := Dictionary new.
-	(Pragma allNamed: #apComputes: in: self class) do:
-		[ :each |
-			each method numArgs > 0
-				ifTrue: [ Error signal: 'Method ', each method name,
-													' computes ', each arguments first,
-													' but requires arguments' ].
-			apComputingScripts at: each arguments first
-				ifPresent: [ :earlier |
-								  Error signal: 'Methods ', each method name,
-														' and ', earlier method name,
-														' both claim to compute ',
-														each arguments first ]
-				ifAbsentPut: [ each method ] ].
-	computedUndeclaredVars := apComputingScripts keys difference: self class instVarNames.
-	computedUndeclaredVars ifNotEmpty: [ Error signal: 'Variables computed but not declared: ',
-																		 (', ' join: computedUndeclaredVars) ].
-	uncomputedInstVars := self class instVarNames difference: apComputingScripts keys.
-	uncomputedInstVars ifNotEmpty: [ Error signal: 'Variables declared but not computed: ',
-																	 (', ' join: uncomputedInstVars) ].
-]
-
-{ #category : #computation }
-APScriptWorkflow >> apCompute: aSymbol [
-	"If the slot holds a non-nil value, consider the data available.
-	 TODO: Should be replaced by an explicit validity flag stored in APValueHolder."
-	(self instVarNamed: aSymbol) value ifNotNil: [ ^ self ]. 
-	self apCollectComputingMethods.
-	(apComputingScripts at: aSymbol)
-		valueWithReceiver: self arguments: Array new
-
-]
-
 { #category : #'data access' }
 APScriptWorkflow >> apComputedVariablesInThisContext [
 	| computedVariables level context |

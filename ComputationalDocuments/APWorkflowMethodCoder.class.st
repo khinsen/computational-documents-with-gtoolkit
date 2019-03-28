@@ -1,7 +1,7 @@
 Class {
 	#name : #APWorkflowMethodCoder,
 	#superclass : #GtMethodCoder,
-	#category : #ComputationalDocuments
+	#category : #'ComputationalDocuments-Obsolete'
 }
 
 { #category : #private }

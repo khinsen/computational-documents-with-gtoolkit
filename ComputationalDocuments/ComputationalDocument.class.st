@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'story'
 	],
-	#category : #ComputationalDocuments
+	#category : #'ComputationalDocuments-Obsolete'
 }
 
 { #category : #accessing }

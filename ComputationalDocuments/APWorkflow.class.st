@@ -7,7 +7,7 @@ Class {
 		'apDataDependencies',
 		'apComputingMethods'
 	],
-	#category : #ComputationalDocuments
+	#category : #'ComputationalDocuments-Obsolete'
 }
 
 { #category : #'instance variables' }

@@ -5,7 +5,7 @@ Class {
 		'documents',
 		'directory'
 	],
-	#category : #ComputationalDocuments
+	#category : #'ComputationalDocuments-Obsolete'
 }
 
 { #category : #accessing }

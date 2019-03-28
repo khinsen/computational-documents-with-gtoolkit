@@ -9,9 +9,9 @@ Class {
 		'data',
 		'stories',
 		'parsedStories',
-		'gtDocuments'
+		'scripts'
 	],
-	#category : #ComputationalDocuments
+	#category : #'ComputationalDocuments-Obsolete'
 }
 
 { #category : #'instance creation' }
@@ -36,6 +36,13 @@ APDocument class >> name: aSymbol [
 	^self basicNew
 			initializeWithName: aSymbol;
 			yourself
+]
+
+{ #category : #inspecting }
+APDocument >> asGtDocument [
+	^ GtDocument new
+					 strategy: (APContainerStorageStrategy new container: self);
+					 read
 ]
 
 { #category : #accessing }
@@ -104,17 +111,15 @@ APDocument >> fuelAfterMaterialization [
 { #category : #inspecting }
 APDocument >> gtDocumentFor: aView [
 	<gtView>
-	| aDocument |
-	aDocument := GtDocument new
-					strategy: (APContainerStorageStrategy new container: self);
-					read. 
-	^ (aDocument gtTextFor: aView)
-		title: 'Description' translated;
+	| aGtDocument |
+	aGtDocument := self asGtDocument.
+	^ (aGtDocument gtTextFor: aView)
+		title: 'Main page' translated;
 		priority: -1;
 		action: [ :anAction | 
-			aDocument gtSaveActionFor: anAction ];
+			aGtDocument gtSaveActionFor: anAction ];
 		action: [ :anAction | 
-			aDocument gtShowMarkupActionFor: anAction ]
+			aGtDocument gtShowMarkupActionFor: anAction ]
 ]
 
 { #category : #inspecting }
@@ -144,7 +149,6 @@ APDocument >> initializeWithName: aSymbol [
 	stories := Dictionary with: #Main -> ''.
 	parsedStories := Dictionary new.
 	self parseStory: #Main.
-	gtDocuments := Dictionary new.
 	data := APWorkflow name: aSymbol
 ]
 
@@ -216,6 +220,12 @@ APDocument >> scriptsInStories [
 	^ visitor labelledCodeBlocks
 ]
 
+{ #category : #workflow }
+APDocument >> setDatasetNamed: aSymbol to: aValue [
+	(self valueHolderForDatasetNamed: aSymbol)
+		rawValue: aValue
+]
+
 { #category : #persistence }
 APDocument >> store [
 	library
@@ -240,6 +250,13 @@ APDocument >> storyNamed: aSymbol [
 APDocument >> storyNamed: aSymbol text: aString [
 	stories at: aSymbol put: aString.
 	self parseStory: aSymbol
+]
+
+{ #category : #workflow }
+APDocument >> valueHolderForDatasetNamed: aSymbol [
+	(self datasetNames includes: aSymbol)
+		ifFalse: [ self error: 'No dataset named ', aSymbol ].
+	^ data instVarNamed: aSymbol
 ]
 
 { #category : #inspecting }

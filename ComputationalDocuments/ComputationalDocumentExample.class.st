@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'inputData'
 	],
-	#category : #ComputationalDocuments
+	#category : #'ComputationalDocuments-Obsolete'
 }
 
 { #category : #initialization }

@@ -1,7 +1,7 @@
 Class {
 	#name : #APWorkflowMethodsCoder,
 	#superclass : #GtClassMethodsCoder,
-	#category : #ComputationalDocuments
+	#category : #'ComputationalDocuments-Obsolete'
 }
 
 { #category : #actions }

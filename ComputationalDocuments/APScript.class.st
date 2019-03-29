@@ -28,8 +28,16 @@ APScript >> evaluate [
 { #category : #inspecting }
 APScript >> gtSourceFor: aView [
 	<gtView>
-	^ (self sourceCode gtLiveFor: aView)
-		title: self name
+	^ aView explicit
+		title: self name;
+		priority: 10;
+		stencil: [ (GtPharoSnippetCoder new
+							source: self sourceCode;
+							yourself)
+						expanded: true;
+						asElement ]
+	
+
 ]
 
 { #category : #initialization }

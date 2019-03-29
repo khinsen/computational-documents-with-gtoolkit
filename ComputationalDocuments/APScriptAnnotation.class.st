@@ -44,7 +44,7 @@ APScriptAnnotation >> cursorLeftInText: aBlRope [
 
 { #category : #'accessing - parameter values' }
 APScriptAnnotation >> defaultShowSelector [
-	^ self constants defaultMethodShowSelector
+	^ #gtSourceFor:
 ]
 
 { #category : #testing }

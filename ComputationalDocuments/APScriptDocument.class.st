@@ -38,6 +38,11 @@ APScriptDocument class >> name: aSymbol [
 			yourself
 ]
 
+{ #category : #workflow }
+APScriptDocument >> addScript: aScript [
+	self data addScript: aScript
+]
+
 { #category : #inspecting }
 APScriptDocument >> asGtDocument [
 	^ GtDocument new
@@ -123,15 +128,6 @@ APScriptDocument >> gtDocumentFor: aView [
 ]
 
 { #category : #inspecting }
-APScriptDocument >> gtMethodsFor: aView [
-	<gtView>
-	^ aView explicit
-		title: 'Methods' translated;
-		priority: 2;
-		stencil: [ (APWorkflowMethodsCoder forObject: self data) asElement ]
-]
-
-{ #category : #inspecting }
 APScriptDocument >> gtWorkflowViewFor: aView [
 	<gtView>
 	^ aView mondrian
@@ -169,11 +165,6 @@ APScriptDocument >> library: anAPLibrary [
 ]
 
 { #category : #accessing }
-APScriptDocument >> methodDefinitionFromString: aString [
-	^ self data class methodNamed: aString asSymbol
-]
-
-{ #category : #accessing }
 APScriptDocument >> name [
 	^ name
 ]
@@ -196,19 +187,22 @@ APScriptDocument >> printOn: aStream [
 
 { #category : #workflow }
 APScriptDocument >> runScript: aSymbol [
-	data perform: aSymbol
+	(self scriptNamed: aSymbol) evaluate
+]
+
+{ #category : #workflow }
+APScriptDocument >> scriptNamed: aSymbol [
+	^ self data scriptNamed: aSymbol
 ]
 
 { #category : #workflow }
 APScriptDocument >> scriptNames [
-	^ self scripts collect: #selector
+	^ self scripts collect: #name
 ]
 
 { #category : #workflow }
 APScriptDocument >> scripts [
-	^ data class methods
-		select: [ :each | (each pragmas collect: #selector) includes: #apComputes: ]
-
+	^ data scripts
 ]
 
 { #category : #parsing }
@@ -261,9 +255,7 @@ APScriptDocument >> valueHolderForDatasetNamed: aSymbol [
 
 { #category : #inspecting }
 APScriptDocument >> workflowViewFor: aMondrian [
-	| scriptsForData datasets inBox inRoundedBox edges |
-	self data apCollectComputingMethods.
-	scriptsForData := self data apComputingMethods.
+	| datasets inBox inRoundedBox edges |
 	datasets := self datasets.
 	inBox := [ :element |
 					element padding: (BlInsets all: 8);
@@ -292,11 +284,11 @@ APScriptDocument >> workflowViewFor: aMondrian [
 	"The script nodes"
 	aMondrian nodes
 		shape:
-			[ :x | inBox value: (BlTextElement new text: (x selector asRopedText fontSize: 8))];
+			[ :x | inBox value: (BlTextElement new text: (x name asRopedText fontSize: 8))];
 		with: self scripts.
 	edges := OrderedCollection new.
 	"The edges from datasets to scripts"
-	self data apDataDependencies
+"	self data apDataDependencies
 		keysAndValuesDo:
 			[ :var :dependencies |
 				| methodForVar |
@@ -304,14 +296,14 @@ APScriptDocument >> workflowViewFor: aMondrian [
 				dependencies do:
 					[ :each |
 						edges add: { datasets at: each. methodForVar } ] ].
-	"The edges from scripts to datasets"
-	self scripts
+"	"The edges from scripts to datasets"
+"	self scripts
 		do: [ :each |
 				each pragmas
 					select: [ :p | p selector = #apComputes: ]
 					thenDo: [ :p | edges add:
 										{ each. self datasets at: p arguments first } ] ].
-	"The greaphical representation of the edges"
+"	"The greaphical representation of the edges"
 	aMondrian edges
 		shape: [ :x | 
 			BlLineElement new

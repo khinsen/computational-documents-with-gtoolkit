@@ -63,6 +63,11 @@ APContainerStorageStrategy >> rootDirectory [
 	^ FileSystem workingDirectory
 ]
 
+{ #category : #accessing }
+APContainerStorageStrategy >> scriptNamed: aSymbol [
+	^ self container scriptNamed: aSymbol
+]
+
 { #category : #actions }
 APContainerStorageStrategy >> store: aGtDocument [
 	self 

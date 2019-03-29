@@ -90,13 +90,11 @@ APScriptWorkflow >> = anObject [
 
 ]
 
-{ #category : #adding }
-APScriptWorkflow >> addScript: aString [
-	| script |
-	script := APScript workflow: self.
-	script sourceCode: aString.
-	apScripts add: script.
-	^ script
+{ #category : #accessing }
+APScriptWorkflow >> addScript: aScript [
+	aScript workflow: self.
+	apScripts at: aScript name put: aScript.
+
 ]
 
 { #category : #dependencies }
@@ -230,7 +228,7 @@ APScriptWorkflow >> hash [
 APScriptWorkflow >> initialize [
 	super initialize.
 	self class initializeSlots: self.
-	apScripts := OrderedCollection new.
+	apScripts := Dictionary new.
 	self apObserveAllSlots.
 	self apClearCachedState.
 
@@ -240,4 +238,14 @@ APScriptWorkflow >> initialize [
 APScriptWorkflow >> restoreDataDependenciesTo: aDictionary [
 	"Used only to restore dependencies from a serialized APDocument"
 	apDataDependencies := aDictionary
+]
+
+{ #category : #accessing }
+APScriptWorkflow >> scriptNamed: aSymbol [
+	^ apScripts at: aSymbol
+]
+
+{ #category : #accessing }
+APScriptWorkflow >> scripts [
+	^ apScripts
 ]

@@ -2,18 +2,12 @@ Class {
 	#name : #APScript,
 	#superclass : #Object,
 	#instVars : [
+		'name',
 		'sourceCode',
 		'workflow'
 	],
 	#category : #ComputationalDocuments
 }
-
-{ #category : #'instance creation' }
-APScript class >> workflow: aWorkflow [
-	^self basicNew
-		initializeWithWorkflow: aWorkflow;
-		yourself
-]
 
 { #category : #evaluating }
 APScript >> compile [
@@ -31,10 +25,26 @@ APScript >> evaluate [
 		evaluate
 ]
 
+{ #category : #inspecting }
+APScript >> gtSourceFor: aView [
+	<gtView>
+	^ (self sourceCode gtLiveFor: aView)
+		title: self name
+]
+
 { #category : #initialization }
-APScript >> initializeWithWorkflow: aWorkflow [
-	workflow := aWorkflow.
+APScript >> initialize [
 	sourceCode := ''.
+]
+
+{ #category : #accessing }
+APScript >> name [
+	^ name
+]
+
+{ #category : #accessing }
+APScript >> name: aSymbol [
+	name := aSymbol
 ]
 
 { #category : #accessing }
@@ -50,4 +60,9 @@ APScript >> sourceCode: aString [
 { #category : #accessing }
 APScript >> workflow [
 	^ workflow
+]
+
+{ #category : #accessing }
+APScript >> workflow: aWorkflow [
+	workflow := aWorkflow
 ]

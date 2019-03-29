@@ -41,7 +41,7 @@ APDocumentTest >> testDependencyChain [
 	d runScript: #computeY.
 	d runScript: #computeZ.
 
-	self assert: d scriptNames equals: #(computeX computeY computeZ).
+	self assert: d scriptNames asSet equals: #(computeX computeY computeZ) asSet.
 	self assert: d datasetNames equals: #(x y z).
 
 	self assert: (d datasetNamed: #x) equals: 1.

@@ -18,7 +18,8 @@ APScriptWorkflowTest >> testAssignDatasetInScript [
 	| w s |
 	w := APScriptWorkflow name: #bar.
 	w class addInstVarNamed: #foo.
-	s := w addScript: 'foo := 42'.
+	s := APScript new name: #setFoo; sourceCode: 'foo := 42'.
+	w addScript: s.
 	s evaluate.
 	self assert: w foo equals: 42
 ]

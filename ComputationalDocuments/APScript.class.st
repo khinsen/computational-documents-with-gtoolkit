@@ -6,7 +6,7 @@ Class {
 		'sourceCode',
 		'workflow'
 	],
-	#category : #ComputationalDocuments
+	#category : #'ComputationalDocuments-scriptBased'
 }
 
 { #category : #evaluating }

@@ -8,7 +8,7 @@ Class {
 		'apDataDependencies',
 		'apComputingScripts'
 	],
-	#category : #ComputationalDocuments
+	#category : #'ComputationalDocuments-scriptBased'
 }
 
 { #category : #'instance variables' }

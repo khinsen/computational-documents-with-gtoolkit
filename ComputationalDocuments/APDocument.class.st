@@ -11,7 +11,7 @@ Class {
 		'parsedStories',
 		'scripts'
 	],
-	#category : #'ComputationalDocuments-Obsolete'
+	#category : #ComputationalDocuments
 }
 
 { #category : #'instance creation' }

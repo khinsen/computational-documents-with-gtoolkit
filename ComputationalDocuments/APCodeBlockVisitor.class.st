@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'labelledCodeBlocks'
 	],
-	#category : #ComputationalDocuments
+	#category : #'ComputationalDocuments-GToolkit'
 }
 
 { #category : #initializing }

@@ -9,7 +9,7 @@ Class {
 
 { #category : #'code-critics' }
 ManifestComputationalDocuments class >> ruleRBBadMessageRuleV1FalsePositive [
-	^ #(#(#(#RGMethodDefinition #(#APWorkflowTest #testInstVarCreation #false)) #'2019-03-01T09:48:22.245401+01:00') #(#(#RGMethodDefinition #(#APWorkflow #fuelAccept: #false)) #'2019-03-06T14:37:06.677235+01:00') #(#(#RGMethodDefinition #(#APWorkflowTest #testInstVarAndScriptCreation #false)) #'2019-03-06T18:49:28.242758+01:00') )
+	^ #(#(#(#RGMethodDefinition #(#APWorkflowTest #testInstVarCreation #false)) #'2019-03-01T09:48:22.245401+01:00') #(#(#RGMethodDefinition #(#APWorkflow #fuelAccept: #false)) #'2019-03-06T14:37:06.677235+01:00') #(#(#RGMethodDefinition #(#APWorkflowTest #testInstVarAndScriptCreation #false)) #'2019-03-06T18:49:28.242758+01:00') #(#(#RGMethodDefinition #(#TAPWiki #wikiPageNamed: #false)) #'2019-04-09T11:14:57.283107+02:00') )
 ]
 
 { #category : #'code-critics' }

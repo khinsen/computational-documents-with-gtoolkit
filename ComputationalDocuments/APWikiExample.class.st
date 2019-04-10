@@ -12,14 +12,3 @@ Class {
 	#classTraits : 'TAPWiki classTrait',
 	#category : #'ComputationalDocuments-Demo'
 }
-
-{ #category : #wikiPages }
-APWikiExample class >> wikiPageOther [
-	"This method was automatically generated."
-	<wikiPage: #Other>
-	^APWikiPage
-		wiki: self
-		name: #Other
-		text: 
-'!The other page'
-]

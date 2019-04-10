@@ -24,6 +24,16 @@ APWikiPage >> asGtDocument [
 ]
 
 { #category : #inspecting }
+APWikiPage >> gtActionRemoveFor: anAction [
+	<gtAction>
+	^ anAction button
+			icon: BrGlamorousIcons trash;
+			forViewDefinedIn: #gtDocumentFor:;
+			priority: 30;
+			action: [ :aButton | self remove ]
+]
+
+{ #category : #inspecting }
 APWikiPage >> gtDocumentFor: aView [
 	<gtView>
 	| aGtDocument |
@@ -56,6 +66,11 @@ APWikiPage >> printOn: aStream [
 			  nextPutAll: name;
 			  nextPut: $).
 
+]
+
+{ #category : #deleting }
+APWikiPage >> remove [
+	wiki removeWikiPageNamed: name
 ]
 
 { #category : #persistence }

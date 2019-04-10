@@ -59,6 +59,11 @@ TAPWiki classSide >> normalizeWikiPageName: aSymbol [
 	^ aSymbol capitalized
 ]
 
+{ #category : #deleting }
+TAPWiki classSide >> removeWikiPageNamed: aSymbol [
+	self class removeSelector: (self methodSelectorForWikiPageNamed: aSymbol)
+]
+
 { #category : #accessing }
 TAPWiki classSide >> store: aString inWikiPageNamed: aSymbol [
 	| pageName code |

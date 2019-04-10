@@ -14,7 +14,7 @@ TAPWiki classSide >> createOrRetrieveWikiPageNamed: aSymbol [
 
 { #category : #inspecting }
 TAPWiki classSide >> gtDocumentFor: aView [
-	<gtView>
+	"<gtView> is inherited from the overriden implementation in Class"
 	| aDocument |
 	aDocument := GtDocument new
 							strategy: (APWikiPageStorageStrategy new container: self; name: #Main);
@@ -26,6 +26,16 @@ TAPWiki classSide >> gtDocumentFor: aView [
 			aDocument gtSaveActionFor: anAction ];
 		action: [ :anAction | 
 			aDocument gtShowMarkupActionFor: anAction ]
+]
+
+{ #category : #inspecting }
+TAPWiki classSide >> gtPagesFor: aView [
+	<gtView>
+	^ aView list
+		title: 'Pages' translated;
+		priority: 0;
+		items: [ self wikiPageNames collect: [ :pn | self wikiPageNamed: pn ] ];
+		itemFormat: [ :page | page name ]
 ]
 
 { #category : #testing }
@@ -88,4 +98,15 @@ TAPWiki classSide >> wikiPageNamed: aSymbol [
 	^ [ self perform: (self methodSelectorForWikiPageNamed: pageName) ]
 		on: MessageNotUnderstood do: [ nil ]
 		
+]
+
+{ #category : #accessing }
+TAPWiki classSide >> wikiPageNames [
+	| pageNames |
+	pageNames := ((Pragma allNamed: #wikiPage: in: self class)
+						collect: [ :p | p argumentAt: 1 ])
+					 	asOrderedCollection.
+	pageNames sort.
+	pageNames addFirst: #Main.
+	^ pageNames asArray
 ]

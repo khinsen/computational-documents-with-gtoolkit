@@ -9,6 +9,7 @@ Class {
 
 { #category : #running }
 APWikiTest >> setUp [
+	EpMonitor current disable.
 	wiki := Object subclass: #APWikiTestExample
 						uses: TAPWiki
 						instanceVariableNames: ''
@@ -18,7 +19,8 @@ APWikiTest >> setUp [
 
 { #category : #running }
 APWikiTest >> tearDown [
-	wiki removeFromSystem
+	wiki removeFromSystem.
+	EpMonitor current enable.
 ]
 
 { #category : #testing }
@@ -49,4 +51,13 @@ APWikiTest >> testPageNameNormalization [
 	wiki store: text inWikiPageNamed: #Bar.
 	self assert: (wiki wikiPageNamed: #bar) text equals: text.
 
+]
+
+{ #category : #testing }
+APWikiTest >> testPageNames [
+	wiki createOrRetrieveWikiPageNamed: #Foo.
+	wiki createOrRetrieveWikiPageNamed: #Bar.
+	wiki createOrRetrieveWikiPageNamed: #Baz.
+	self assert: wiki wikiPageNames
+		  equals: #(Main Bar Baz Foo)
 ]

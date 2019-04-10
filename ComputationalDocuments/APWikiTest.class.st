@@ -23,12 +23,30 @@ APWikiTest >> tearDown [
 
 { #category : #testing }
 APWikiTest >> testMethodSelector [
+	self assert: (wiki methodSelectorForWikiPageNamed: #Foo) equals: #wikiPageFoo.
+	"Page names are normalized by capitalizaion, so #foo and #Foo are the same."
 	self assert: (wiki methodSelectorForWikiPageNamed: #foo) equals: #wikiPageFoo.
 
 ]
 
 { #category : #testing }
 APWikiTest >> testPageCreation [
-	wiki store: '!!Page Foo' inWikiPageNamed: #foo.
-	wiki wikiPageNamed: #foo.
+	"Creation of an empty page"
+	self assert: (wiki createOrRetrieveWikiPageNamed: #Bar) text
+		  equals: wiki initialWikiPageContents.
+	"Creation of a page with given content"
+	wiki store: '!Page Foo' inWikiPageNamed: #Foo.
+	self assert: (wiki wikiPageNamed: #Foo) text equals: '!Page Foo'.
+
+]
+
+{ #category : #testing }
+APWikiTest >> testPageNameNormalization [
+	| text |
+	text := '!A test page'.
+	wiki store: text inWikiPageNamed: #foo.
+	self assert: (wiki wikiPageNamed: #Foo) text equals: text.
+	wiki store: text inWikiPageNamed: #Bar.
+	self assert: (wiki wikiPageNamed: #bar) text equals: text.
+
 ]

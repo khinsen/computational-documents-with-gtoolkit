@@ -21,5 +21,5 @@ APWikiExample class >> wikiPageOther [
 		wiki: self
 		name: #Other
 		text: 
-'!!The other page'
+'!The other page'
 ]

@@ -34,7 +34,7 @@ APWikiPageStorageStrategy >> createOrRetrieveWikiPageNamed: aSymbol [
 APWikiPageStorageStrategy >> evaluationReceiver [
 	"Return an object that is used as a receiver (self) in a codeblock (code snippet) evalution"
 	<return: #Object>
-	^ self container wikiEvaluationReceiver
+	^ self container wikiEvaluationReceiverForPage: name
 ]
 
 { #category : #testing }

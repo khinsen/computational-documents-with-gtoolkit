@@ -3,6 +3,13 @@ Trait {
 	#category : #ComputationalDocuments
 }
 
+{ #category : #accessing }
+TAPWiki classSide >> createOrRetrieveWikiPageNamed: aSymbol [
+	^ (self wikiPageNamed: aSymbol)
+		ifNil: [ ^ (APWikiPage wiki: self name: aSymbol text: '!New page') store ]
+
+]
+
 { #category : #inspecting }
 TAPWiki classSide >> gtDocumentFor: aView [
 	<gtView>
@@ -60,5 +67,7 @@ TAPWiki classSide >> wikiEvaluationReceiver [
 TAPWiki classSide >> wikiPageNamed: aSymbol [
 	aSymbol = #Main
 		ifTrue: [ ^ APWikiPage wiki: self name: #Main text: self comment ].
-	^ self perform: (self methodSelectorForWikiPageNamed: aSymbol)
+	^ [ self perform: (self methodSelectorForWikiPageNamed: aSymbol) ]
+		on: MessageNotUnderstood do: [ nil ]
+		
 ]

@@ -58,6 +58,11 @@ APWikiPage >> printOn: aStream [
 
 ]
 
+{ #category : #persistence }
+APWikiPage >> store [
+	wiki store: text inWikiPageNamed: name
+]
+
 { #category : #accessing }
 APWikiPage >> text [
 	^ text

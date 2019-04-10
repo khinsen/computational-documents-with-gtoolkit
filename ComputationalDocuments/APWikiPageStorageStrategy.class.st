@@ -26,6 +26,11 @@ APWikiPageStorageStrategy >> container: aClass [
 ]
 
 { #category : #accessing }
+APWikiPageStorageStrategy >> createOrRetrieveWikiPageNamed: aSymbol [
+	^ self container createOrRetrieveWikiPageNamed: aSymbol
+]
+
+{ #category : #accessing }
 APWikiPageStorageStrategy >> evaluationReceiver [
 	"Return an object that is used as a receiver (self) in a codeblock (code snippet) evalution"
 	<return: #Object>

@@ -10,29 +10,35 @@ BaselineOfComputationalDocuments >> baseline: spec [
 	spec for: #common do: [			
 
 		spec
+			baseline: 'ActivePapers'
+			with: [ spec repository: 'github://activepapers/activepapers-pharo/src' ].
+
+		spec
 			baseline: 'DataFrame'
-			with: [ spec repository: 'github://PolyMathOrg/DataFrame:master/src' ].
+			with: [ spec repository: 'github://PolyMathOrg/DataFrame/src' ].
 
 		spec
 			baseline: 'Roassal2' 
-			with: [ spec repository: 'github://ObjectProfile/Roassal2:master/src' ].
+			with: [ spec repository: 'github://ObjectProfile/Roassal2/src' ].
 
 		spec
 			baseline: 'PolyMath'
-			with: [ spec repository: 'github://PolyMathOrg/PolyMath:master/src' ].
+			with: [ spec repository: 'github://PolyMathOrg/PolyMath/src' ].
 
 		spec
 			baseline: 'SingletonTrait'
-			with: [ spec repository: 'github://khinsen/SingletonTrait:master' ].
+			with: [ spec repository: 'github://khinsen/SingletonTrait' ].
 
 		spec
 			baseline: 'EqualityThroughVariablesTrait' 
-			with: [ spec repository: 'github://khinsen/EqualityThroughVariablesTrait:master/src' ].
+			with: [ spec repository: 'github://khinsen/EqualityThroughVariablesTrait/src' ].
 
 		spec
 			baseline: 'ObservableSlot'
-			with: [ spec repository: 'github://guillep/ObservableSlots:master/src' ].
+			with: [ spec repository: 'github://guillep/ObservableSlots/src' ].
 
 		spec
-			package: 'ComputationalDocuments' with: [ spec requires: #('DataFrame' 'Roassal2' 'PolyMath' 'SingletonTrait' 'EqualityThroughVariablesTrait' 'ObservableSlot') ] ].
+			package: 'ComputationalDocuments'
+			with: [ spec requires: #('ActivePapers' 'DataFrame' 'Roassal2' 'PolyMath'
+											'SingletonTrait' 'EqualityThroughVariablesTrait' 'ObservableSlot') ] ].
 ]

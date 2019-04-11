@@ -24,6 +24,7 @@ APWikiLinkAnnotation class >> tag [
 { #category : #'private - actions' }
 APWikiLinkAnnotation >> browseReferenceFrom: anEvent [
 	anEvent modifiers isShift ifTrue: [ ^ self ].
+	self isInWiki ifFalse: [ self inform: 'Wiki link not in a Wiki' ].
 	self isPageDefined ifFalse: [ self createReferencedPage ].
 	anEvent target fireEvent: (GtPhlowObjectToSpawn new 
 		object: self referencedPage;
@@ -34,9 +35,11 @@ APWikiLinkAnnotation >> browseReferenceFrom: anEvent [
 APWikiLinkAnnotation >> createReferencedPage [
 	^ referencedPage ifNil: [ referencedPage := self utility 
 		valueOf: self constants nameParameterName
-		in: self parameters 
-		value: [ :aValue | [ self gtDocument storage createOrRetrieveWikiPageNamed: aValue asSymbol ]
-									on: Error do: [ nil ]] 
+		in: self parameters
+		value: [ :aValue |
+					self isInWiki
+						ifTrue: [ self gtDocument storage createOrRetrieveWikiPageNamed: aValue asSymbol ]
+						ifFalse: [ nil ] ]
 		emptyValue: [ nil ] 
 		defaultValue: [ nil ] ]
 ]
@@ -55,13 +58,23 @@ APWikiLinkAnnotation >> defaultShowSelector [
 
 { #category : #testing }
 APWikiLinkAnnotation >> doesReferenceExist [
-	"Return true if a referenced object is defined."
-	^ true
+	"If the annotation is on a Wiki page, the reference is always considered existing,
+	 since missing pages are created automatically when the link is followed."
+	^ self isInWiki
+]
+
+{ #category : #testing }
+APWikiLinkAnnotation >> isInWiki [
+	"The annotation can be used in any Pillar document, but is effective only in a Wiki."
+	| storage |
+	storage := self gtDocument storage.
+	^ (storage respondsTo: #wikiPageNamed:)
+		and: [ storage respondsTo: #createOrRetrieveWikiPageNamed: ]
 ]
 
 { #category : #testing }
 APWikiLinkAnnotation >> isPageDefined [
-	"Return true if a script is defined in the docuent"
+	"Check if the page already exists in the Wiki."
 	^ self referencedPage notNil
 ]
 
@@ -88,8 +101,10 @@ APWikiLinkAnnotation >> referencedPage [
 	^ referencedPage ifNil: [ referencedPage := self utility 
 		valueOf: self constants nameParameterName
 		in: self parameters 
-		value: [ :aValue | [ self gtDocument storage wikiPageNamed: aValue asSymbol ]
-									on: Error do: [ nil ]] 
+		value: [ :aValue |
+					self isInWiki
+						ifTrue: [ self gtDocument storage wikiPageNamed: aValue asSymbol ]
+						ifFalse: [ nil ] ] 
 		emptyValue: [ nil ] 
 		defaultValue: [ nil ] ]
 ]
@@ -103,30 +118,39 @@ APWikiLinkAnnotation >> registerToSystemChanges [
 			for: self gtSubscriber.
 ]
 
-{ #category : #'api - style' }
+{ #category : #'private - styling' }
 APWikiLinkAnnotation >> styleLinkInText: aBlRope [
-	| aNodeToStyle aLinkColor theAttributes |
-	aLinkColor := self utility linkColor: self isPageDefined.
-	theAttributes := Array with: (BlTextForegroundAttribute new paint: aLinkColor)
-								 with: (BrTextHoverStylableAttribute new
-											attribute: (BlTextUnderlineAttribute new paint: aLinkColor))
-								 with: (BrTextClickAttribute new
-											action: [ :aText :aTarget :aTextEditor :anEvent | 
-												self browseReferenceFrom: anEvent ]).
+	| aNodeToStyle linkColor attributes |
+	linkColor := self utility linkColor: self isPageDefined.
+	attributes := Array
+						"Change the color of the link text"
+						with: (BlTextForegroundAttribute new paint: linkColor)
+						"Underline it in the same color when the cursor hovers over it"
+						with: (BrTextHoverStylableAttribute new
+									attribute: (BlTextUnderlineAttribute new paint: linkColor))
+						"Define the click action"
+						with: (BrTextClickAttribute new
+									beNotOverwritableByStyler;
+									action: [ :text :target :editor :event | 
+												self browseReferenceFrom: event ]).
 
 	aNodeToStyle := self utility linkNodeForAnnotation: self.
 	(aBlRope  
 		from: aNodeToStyle start 
 		to: (aNodeToStyle start max: aNodeToStyle stop))
-			attributes: theAttributes.
+			attributes: attributes.
 
 ]
 
 { #category : #'api - style' }
 APWikiLinkAnnotation >> styleTextWithMarkup: aBlRope [
+	"First render the annotation without any particularities."
 	super styleTextWithMarkup: aBlRope.
+	"Then add styling to the page name, turning it into a link."
 	self styleLinkInText: aBlRope.
+	"Next, add the small triangle that opens the preview"
 	self styleExpandingPreviewInText: aBlRope.
+	"Set up reactions to changes in the system - not quite sure why this happens here!"
 	self registerToSystemChanges
 ]
 

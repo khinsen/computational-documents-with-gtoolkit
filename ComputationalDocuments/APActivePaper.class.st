@@ -4,8 +4,7 @@ Class {
 	#traits : 'TAPData + TAPWiki + TSingleton',
 	#classTraits : 'TAPData classTrait + TAPWiki classTrait + TSingleton classTrait',
 	#instVars : [
-		'apDataDependencies',
-		'apComputingMethods'
+		'apDataDependencies'
 	],
 	#category : #ComputationalDocuments
 }
@@ -29,8 +28,7 @@ APActivePaper class >> addInstVarNamed: aString [
 		| varSymbol |
 		varSymbol := each asSymbol.
 		self addSlot: (APDataSlot named: varSymbol).
-		self compile: each , ' self apCompute: #', each, '. ^ ', each.
-		(self compiledMethodAt: varSymbol) protocol: 'generated' ].
+		self compile: each , ' self apCompute: #', each, '. ^ ', each classified: 'generated' ].
 
 	"Invalidate cached state and put the new slot(s) under observation"
 	self allInstancesDo:
@@ -39,6 +37,28 @@ APActivePaper class >> addInstVarNamed: aString [
 			each apClearCachedState.
 			each apObserveAllSlots ].
 
+]
+
+{ #category : #workflow }
+APActivePaper class >> dataSlotNames [
+	^ self dataSlots collect: #name.
+]
+
+{ #category : #workflow }
+APActivePaper class >> dataSlots [
+	^ self slots select: [ :s | s isKindOf: APDataSlot ]
+]
+
+{ #category : #inspecting }
+APActivePaper class >> gtWorkflowViewFor: aView [
+	<gtView>
+	^ aView mondrian
+		title: 'Workflow' translated;
+		priority: -5;
+		painting:
+			[ :view |
+				self uniqueInstance apWorkflowViewFor: view.
+				view layout custom: (GtGradVerticalDominanceTreeLayout new). ]
 ]
 
 { #category : #testing }
@@ -55,7 +75,7 @@ APActivePaper class >> name: aSymbol [
 	newClass := self subclass: aSymbol
 					  instanceVariableNames: ''
 					  classVariableNames: ''
-					  package: ''.
+					  package: self package name.
 	newClass class compile: 'isAbstract ^ false'
 						classified: 'testing'.
 	^ newClass
@@ -75,83 +95,85 @@ APActivePaper class >> removeInstVarNamed: aString [
 
 ]
 
-{ #category : #accessing }
-APActivePaper class >> wikiEvaluationReceiverForPage: aSymbol [
-	^ self uniqueInstance
-]
-
-{ #category : #'accessing-methods' }
-APActivePaper class >> workflowMethods [
-	^ self methods select: [ :each | each protocol ~= 'generated' and: [ each selector ~= #initialize ] ]
-]
-
-{ #category : #comparing }
-APActivePaper >> = anObject [
-	| instVarNames |
-	(anObject class inheritsFrom: APWorkflow) ifFalse: [ ^ false ].
-	instVarNames := self class instVarNames.
-	instVarNames = anObject class instVarNames ifFalse: [ ^ false ].	
-	instVarNames
-		detect:
-			[ :name | (self readSlotNamed: name) ~= (anObject readSlotNamed: name) ]
-		ifFound: [ ^ false ].
-	self class workflowMethods
-		detect:
-			[ :method |
-				method sourceCode ~= (anObject class methodNamed: method selector) sourceCode ]
-		ifFound: [ ^ false ].
-	^ true
-
-]
-
 { #category : #dependencies }
-APActivePaper >> apClearCachedState [
-	apComputingMethods := nil.
-	apDataDependencies := Dictionary new.
-
-]
-
-{ #category : #dependencies }
-APActivePaper >> apCollectComputingMethods [
-	| uncomputedInstVars computedUndeclaredVars |
-	apComputingMethods ifNotNil: [ ^ self ].
-	apComputingMethods := Dictionary new.
-	(Pragma allNamed: #apComputes: in: self class) do:
+APActivePaper class >> scripts [
+	| scripts uncomputedDatasets computedUndeclaredDatasets |
+	scripts := Dictionary new.
+	(Pragma allNamed: #computes: in: self) do:
 		[ :each |
 			each method numArgs > 0
 				ifTrue: [ Error signal: 'Method ', each method name,
 													' computes ', each arguments first,
 													' but requires arguments' ].
-			apComputingMethods at: each arguments first
+			scripts at: each arguments first
 				ifPresent: [ :earlier |
 								  Error signal: 'Methods ', each method name,
 														' and ', earlier method name,
 														' both claim to compute ',
 														each arguments first ]
 				ifAbsentPut: [ each method ] ].
-	computedUndeclaredVars := apComputingMethods keys difference: self class instVarNames.
-	computedUndeclaredVars ifNotEmpty: [ Error signal: 'Variables computed but not declared: ',
-																		 (', ' join: computedUndeclaredVars) ].
-	uncomputedInstVars := self class instVarNames difference: apComputingMethods keys.
-	uncomputedInstVars ifNotEmpty: [ Error signal: 'Variables declared but not computed: ',
-																	 (', ' join: uncomputedInstVars) ].
+	computedUndeclaredDatasets := scripts keys difference: self dataSlotNames.
+	computedUndeclaredDatasets ifNotEmpty: [ Error signal: 'Variables computed but not declared: ',
+																		 (', ' join: computedUndeclaredDatasets) ].
+	uncomputedDatasets := self dataSlotNames difference: scripts keys.
+	uncomputedDatasets ifNotEmpty: [ Error signal: 'Variables declared but not computed: ',
+																	 (', ' join: uncomputedDatasets) ].
+	^ scripts
+]
+
+{ #category : #accessing }
+APActivePaper class >> wikiEvaluationReceiverForPage: aSymbol [
+	^ self uniqueInstance
+]
+
+{ #category : #workflow }
+APActivePaper class >> workflowMethods [
+	^ self methods select: [ :each | each protocol ~= 'generated' and: [ each selector ~= #initialize ] ]
+]
+
+{ #category : #inspecting }
+APActivePaper >> apBoxAroundElement: element [
+	^ element padding: (BlInsets all: 8);
+				 border: (BlBorder builder width: 1; paint: Color black; build)
+
+]
+
+{ #category : #dependencies }
+APActivePaper >> apClearCachedState [
+	apDataDependencies := Dictionary new.
+
 ]
 
 { #category : #computation }
 APActivePaper >> apCompute: aSymbol [
-	"If the slot holds a non-nil value, consider the data available.
-	 TODO: Should be replaced by an explicit validity flag stored in APValueHolder."
-	(self instVarNamed: aSymbol) value ifNotNil: [ ^ self ]. 
-	self apCollectComputingMethods.
-	(apComputingMethods at: aSymbol)
+	"If the slot holds a valid value, do nothing."
+	(self apValueHolderFor: aSymbol) isValid ifTrue: [ ^ self ]. 
+	(self class scripts at: aSymbol)
 		valueWithReceiver: self arguments: Array new
 
 ]
 
-{ #category : #'data access' }
-APActivePaper >> apComputedVariablesInThisContext [
-	| computedVariables level context |
-	computedVariables := Dictionary new.
+{ #category : #dependencies }
+APActivePaper >> apDataDependencies [
+	^ apDataDependencies
+]
+
+{ #category : #workflow }
+APActivePaper >> apDatasets [
+	"Return a dictionary mapping dataset names to corresponding APValueHolders"
+	| datasets |
+	datasets := Dictionary new.
+	self class dataSlots do: [ :s | datasets at: s name put: (s rawRead: self) ].
+	^ datasets
+]
+
+{ #category : #computation }
+APActivePaper >> apDatasetsComputedInThisContext [
+	"Look for scripts in the execution context and record the datasets they compute.
+	 Answer a dictionary mapping dataset names to the level in the call stack at which
+	 their script was found."
+	| computedDatasets level context |
+	computedDatasets := Dictionary new.
 	level := 1.
 	context := thisContext.
 	[ context isNil ] whileFalse:
@@ -159,21 +181,11 @@ APActivePaper >> apComputedVariablesInThisContext [
 			[ :c | c methodClass = self class ].
 		  context ifNotNil:
 			[ context method pragmas
-					select: [ :p | p selector = #apComputes: ]
-					thenDo: [ :p | computedVariables at: p arguments first ifAbsentPut: level ].
+					select: [ :p | p selector = #computes: ]
+					thenDo: [ :p | computedDatasets at: p arguments first ifAbsentPut: level ].
 			  context := context sender.
 			  level := level + 1 ] ].
-	^ computedVariables
-]
-
-{ #category : #dependencies }
-APActivePaper >> apComputingMethods [
-	^ apComputingMethods
-]
-
-{ #category : #dependencies }
-APActivePaper >> apDataDependencies [
-	^ apDataDependencies
+	^ computedDatasets
 ]
 
 { #category : #dependencies }
@@ -184,24 +196,34 @@ APActivePaper >> apMake: aVariable dependencyOf: dependentVariable [
 
 { #category : #'data access' }
 APActivePaper >> apObserveAllSlots [
-	self class slots do:
-		[ :slot | self apObserveSlot: slot name ]
+	self class dataSlots do:
+		[ :slot | self apObserveDataSlot: slot name ]
 ]
 
 { #category : #'data access' }
-APActivePaper >> apObserveSlot: aSymbol [
+APActivePaper >> apObserveDataSlot: aSymbol [
 	self property: aSymbol
 		  whenReadDo:
-				[ self apReadAccessTo: aSymbol ].
+				[ self apProcessReadAccessTo: aSymbol ].
 	self property: aSymbol
 		  whenChangedDo:
-				[ :value | self apValueOf: aSymbol setTo: value ]
+				[ :value | self apProcessChangeOf: aSymbol newValue: value ]
 ]
 
 { #category : #'data access' }
-APActivePaper >> apReadAccessTo: aSymbol [
+APActivePaper >> apProcessChangeOf: aSymbol newValue: aValue [
 	| variables |
-	variables := self apComputedVariablesInThisContext.
+	variables := self apDatasetsComputedInThisContext.
+	variables ifEmpty: [ ^ self ].
+	self assert: (variables includesKey: aSymbol)
+		  description: 'Unauthorized attempt to modify variable ' , aSymbol asString.
+
+]
+
+{ #category : #'data access' }
+APActivePaper >> apProcessReadAccessTo: aSymbol [
+	| variables |
+	variables := self apDatasetsComputedInThisContext.
 	variables ifEmpty: [ ^ self ].
 	"Read access by the defining method requires no action."
 	variables at: aSymbol ifPresent: [ :level | level = 1 ifTrue: [ ^ self ] ].
@@ -218,47 +240,88 @@ APActivePaper >> apReadAccessTo: aSymbol [
 	
 ]
 
+{ #category : #inspecting }
+APActivePaper >> apRoundedBoxAroundElement: anElement [
+	^ (self apBoxAroundElement: anElement)
+		geometry: (BlRectangle cornerRadius: 20);
+		yourself
+
+]
+
 { #category : #'data access' }
-APActivePaper >> apValueOf: aSymbol setTo: aValue [
-	| variables |
-	variables := self apComputedVariablesInThisContext.
-	variables ifEmpty: [ ^ self ].
-	self assert: (variables includesKey: aSymbol)
-		  description: 'Unauthorized attempt to modify variable ' , aSymbol asString.
+APActivePaper >> apValueHolderFor: aSymbol [
+	^ (self class slotNamed: aSymbol) rawRead: self
+]
+
+{ #category : #inspecting }
+APActivePaper >> apWorkflowArrow [
+	^ BlLineElement new
+			toHead: (BlArrowheadSimpleArrow new
+						border: (BlBorder paint: Color gray width: 1));
+			border: (BlBorder paint: Color gray width: 1)
+]
+
+{ #category : #inspecting }
+APActivePaper >> apWorkflowNodeForScript: aMethod [
+	^ self apBoxAroundElement:
+		(BlTextElement new text:
+			 (aMethod selector asRopedText fontSize: 8))
 
 ]
 
-{ #category : #serialization }
-APActivePaper >> fuelAccept: aGeneralMapper [
-	| slotContents methods |
-	slotContents := Dictionary new.
-	self class localSlots
-		do: [ :slot |
-				| valueHolder |
-				valueHolder := slot rawRead: self.
-				slotContents at: slot name
-								 put: { valueHolder isValid.
-										  valueHolder value.
-										  valueHolder timeStamp } ].
-	methods := self class workflowMethods
-		collect: [ :method | method sourceCode ].
-
-	^ aGeneralMapper
-		visitSubstitution: self
-		by: { slotContents. methods. apDataDependencies }
+{ #category : #inspecting }
+APActivePaper >> apWorkflowNodeForValueHolder: x [
+	| datasetName timeStamp nodeElement |
+	datasetName := x name asRopedText fontSize: 8.
+	x isValid
+		ifTrue: [ timeStamp := ((x timeStamp printString first: 16)
+											replaceAll: $T with: Character space)
+											asRopedText fontSize: 6.
+					 nodeElement := BlElement new
+							layout: (BlLinearLayout vertical cellSpacing: 5);
+							constraintsDo: [ :c | 
+						     c horizontal fitContent.
+						     c vertical fitContent ];
+							addChildren:
+								{ BlTextElement new text: datasetName.
+								  BlTextElement new text: timeStamp } ]
+		ifFalse: [ datasetName foreground: Color red.
+					  nodeElement := BlTextElement new text: datasetName  ].
+	^ self apRoundedBoxAroundElement: nodeElement.
 ]
 
-{ #category : #comparing }
-APActivePaper >> hash [
-	| instVarNames hash |
-	instVarNames := self class instVarNames.
-	hash := instVarNames hash.
-	instVarNames do:
-		[ :name |
-			hash := hash bitXor: (self readSlotNamed: name) hash ].
-	self class workflowMethods do:
-		[ :method | hash bitXor: method sourceCode hash ].
-	^ hash
+{ #category : #inspecting }
+APActivePaper >> apWorkflowViewFor: aMondrian [
+	| scripts datasets edges |
+	scripts := self class scripts.
+	datasets := self apDatasets.
+	"The dataset nodes"
+	aMondrian nodes
+		shape: [ :x | self apWorkflowNodeForValueHolder: x ];
+		with: datasets values.
+	"The script nodes"
+	aMondrian nodes
+		shape: [ :x | self apWorkflowNodeForScript: x];
+		with: scripts values asIdentitySet.
+	edges := OrderedCollection new.
+	"The edges from datasets to scripts"
+	self apDataDependencies
+		keysAndValuesDo:
+			[ :var :dependencies |
+				dependencies do:
+					[ :each |
+						edges add: { datasets at: each. scripts at: var } ] ].
+	"The edges from scripts to datasets"
+	scripts
+		keysAndValuesDo:
+			[ :dataSetName :script |
+			 	edges add: {script. datasets at: dataSetName } ].
+	"The graphical representation of the edges"
+	aMondrian edges
+		shape: [ :x | self apWorkflowArrow ];
+		fromCenterBottom;
+		toCenterTop;
+		connect: edges from: #first to: #second.
 
 ]
 

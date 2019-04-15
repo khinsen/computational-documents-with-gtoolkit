@@ -44,21 +44,6 @@ APValueHolderTest >> testRead [
 ]
 
 { #category : #tests }
-APValueHolderTest >> testValuesInBlock [
-	| valueHolder old new ann |
-	valueHolder := APValueHolder value: 'old'.
-	valueHolder
-		whenChangedDo: [ :newValue :oldValue :a | 
-			new := newValue.
-			old := oldValue.
-			ann := a ].
-	valueHolder value: 'new'.
-	self assert: old equals: 'old'.
-	self assert: new equals: 'new'.
-	self assert: (ann isMemberOf: ValueChanged)
-]
-
-{ #category : #tests }
 APValueHolderTest >> testValuesInBlockAfterChange [
 	| valueHolder old new ann |
 	valueHolder := APValueHolder value: 'old'.

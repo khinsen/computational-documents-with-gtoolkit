@@ -34,11 +34,7 @@ BaselineOfComputationalDocuments >> baseline: spec [
 			with: [ spec repository: 'github://khinsen/EqualityThroughVariablesTrait/src' ].
 
 		spec
-			baseline: 'ObservableSlot'
-			with: [ spec repository: 'github://guillep/ObservableSlots/src' ].
-
-		spec
 			package: 'ComputationalDocuments'
 			with: [ spec requires: #('ActivePapers' 'DataFrame' 'Roassal2' 'PolyMath'
-											'SingletonTrait' 'EqualityThroughVariablesTrait' 'ObservableSlot') ] ].
+											'SingletonTrait' 'EqualityThroughVariablesTrait') ] ].
 ]

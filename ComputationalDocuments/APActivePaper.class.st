@@ -39,6 +39,15 @@ APActivePaper class >> addInstVarNamed: aString [
 
 ]
 
+{ #category : #inspecting }
+APActivePaper class >> boxAround: aBlElement [
+	"Add a rectangular box with some padding to a BlElement.
+	 Used for script nodes in a workflow."
+	^ aBlElement padding: (BlInsets all: 8);
+				 border: (BlBorder builder width: 1; paint: Color black; build)
+
+]
+
 { #category : #workflow }
 APActivePaper class >> dataSlotNames [
 	^ self dataSlots collect: #name.
@@ -49,6 +58,16 @@ APActivePaper class >> dataSlots [
 	^ self slots select: [ :s | s isKindOf: APDataSlot ]
 ]
 
+{ #category : #workflow }
+APActivePaper class >> datasets [
+	"Return a dictionary mapping dataset names to corresponding APValueHolders"
+	| instance datasets |
+	instance := self uniqueInstance.
+	datasets := Dictionary new.
+	self dataSlots do: [ :s | datasets at: s name put: (s rawRead: instance) ].
+	^ datasets
+]
+
 { #category : #inspecting }
 APActivePaper class >> gtWorkflowViewFor: aView [
 	<gtView>
@@ -57,7 +76,7 @@ APActivePaper class >> gtWorkflowViewFor: aView [
 		priority: -5;
 		painting:
 			[ :view |
-				self uniqueInstance apWorkflowViewFor: view.
+				self workflowViewFor: view.
 				view layout custom: (GtGradVerticalDominanceTreeLayout new). ]
 ]
 
@@ -95,6 +114,16 @@ APActivePaper class >> removeInstVarNamed: aString [
 
 ]
 
+{ #category : #inspecting }
+APActivePaper class >> roundedBoxAround: aBlElement [
+	"Add a box with rounded corners plus some padding to a BlElement.
+	 Used for dataset nodes in a workflow."
+	^ (self boxAround: aBlElement)
+		geometry: (BlRectangle cornerRadius: 20);
+		yourself
+
+]
+
 { #category : #dependencies }
 APActivePaper class >> scripts [
 	| scripts uncomputedDatasets computedUndeclaredDatasets |
@@ -126,15 +155,85 @@ APActivePaper class >> wikiEvaluationReceiverForPage: aSymbol [
 	^ self uniqueInstance
 ]
 
+{ #category : #inspecting }
+APActivePaper class >> workflowArrow [
+	"Make an arrow for use in a workflow"
+	^ BlLineElement new
+			toHead: (BlArrowheadSimpleArrow new
+						border: (BlBorder paint: Color gray width: 1));
+			border: (BlBorder paint: Color gray width: 1)
+]
+
 { #category : #workflow }
 APActivePaper class >> workflowMethods [
 	^ self methods select: [ :each | each protocol ~= 'generated' and: [ each selector ~= #initialize ] ]
 ]
 
 { #category : #inspecting }
-APActivePaper >> apBoxAroundElement: element [
-	^ element padding: (BlInsets all: 8);
-				 border: (BlBorder builder width: 1; paint: Color black; build)
+APActivePaper class >> workflowNodeForDataset: anAPValueHolder [
+	"Answer a BlElement representing a dataset node in a workflow."
+	| datasetName timeStamp nodeElement |
+	datasetName := anAPValueHolder name asRopedText fontSize: 8.
+	anAPValueHolder isValid
+		ifTrue: [ timeStamp := ((anAPValueHolder timeStamp printString first: 16)
+											replaceAll: $T with: Character space)
+											asRopedText fontSize: 6.
+					 nodeElement := BlElement new
+							layout: (BlLinearLayout vertical cellSpacing: 5);
+							constraintsDo: [ :c | 
+						     c horizontal fitContent.
+						     c vertical fitContent ];
+							addChildren:
+								{ BlTextElement new text: datasetName.
+								  BlTextElement new text: timeStamp } ]
+		ifFalse: [ datasetName foreground: Color red.
+					  nodeElement := BlTextElement new text: datasetName  ].
+	^ self roundedBoxAround: nodeElement.
+]
+
+{ #category : #inspecting }
+APActivePaper class >> workflowNodeForScript: aCompiledMethod [
+	"Answer a BlElement representing a script in a workflow"
+	^ self boxAround:
+		(BlTextElement new text:
+			 (aCompiledMethod selector asRopedText fontSize: 8))
+
+]
+
+{ #category : #inspecting }
+APActivePaper class >> workflowViewFor: aMondrian [
+	"Add the graphics elements of a workflow view to a GtMondrian"
+	| scripts datasets edges |
+	scripts := self scripts.
+	datasets := self datasets.
+	"The dataset nodes"
+	aMondrian nodes
+		shape: [ :each | self workflowNodeForDataset: each ];
+		with: datasets values.
+	"The script nodes"
+	aMondrian nodes
+		shape: [ :each | self workflowNodeForScript: each ];
+		with: scripts values asIdentitySet.
+	edges := OrderedCollection new.
+	"The edges from datasets to scripts"
+	self uniqueInstance apDataDependencies
+		keysAndValuesDo:
+			[ :var :dependencies |
+				dependencies do:
+					[ :each |
+						edges add: { datasets at: each.
+										 scripts at: var } ] ].
+	"The edges from scripts to datasets"
+	scripts
+		keysAndValuesDo:
+			[ :dataSetName :script |
+			 	edges add: {script. datasets at: dataSetName } ].
+	"The graphical representation of the edges"
+	aMondrian edges
+		shape: [ :x | self workflowArrow ];
+		fromCenterBottom;
+		toCenterTop;
+		connect: edges from: #first to: #second.
 
 ]
 
@@ -156,15 +255,6 @@ APActivePaper >> apCompute: aSymbol [
 { #category : #dependencies }
 APActivePaper >> apDataDependencies [
 	^ apDataDependencies
-]
-
-{ #category : #workflow }
-APActivePaper >> apDatasets [
-	"Return a dictionary mapping dataset names to corresponding APValueHolders"
-	| datasets |
-	datasets := Dictionary new.
-	self class dataSlots do: [ :s | datasets at: s name put: (s rawRead: self) ].
-	^ datasets
 ]
 
 { #category : #computation }
@@ -240,89 +330,9 @@ APActivePaper >> apProcessReadAccessTo: aSymbol [
 	
 ]
 
-{ #category : #inspecting }
-APActivePaper >> apRoundedBoxAroundElement: anElement [
-	^ (self apBoxAroundElement: anElement)
-		geometry: (BlRectangle cornerRadius: 20);
-		yourself
-
-]
-
 { #category : #'data access' }
 APActivePaper >> apValueHolderFor: aSymbol [
 	^ (self class slotNamed: aSymbol) rawRead: self
-]
-
-{ #category : #inspecting }
-APActivePaper >> apWorkflowArrow [
-	^ BlLineElement new
-			toHead: (BlArrowheadSimpleArrow new
-						border: (BlBorder paint: Color gray width: 1));
-			border: (BlBorder paint: Color gray width: 1)
-]
-
-{ #category : #inspecting }
-APActivePaper >> apWorkflowNodeForScript: aMethod [
-	^ self apBoxAroundElement:
-		(BlTextElement new text:
-			 (aMethod selector asRopedText fontSize: 8))
-
-]
-
-{ #category : #inspecting }
-APActivePaper >> apWorkflowNodeForValueHolder: x [
-	| datasetName timeStamp nodeElement |
-	datasetName := x name asRopedText fontSize: 8.
-	x isValid
-		ifTrue: [ timeStamp := ((x timeStamp printString first: 16)
-											replaceAll: $T with: Character space)
-											asRopedText fontSize: 6.
-					 nodeElement := BlElement new
-							layout: (BlLinearLayout vertical cellSpacing: 5);
-							constraintsDo: [ :c | 
-						     c horizontal fitContent.
-						     c vertical fitContent ];
-							addChildren:
-								{ BlTextElement new text: datasetName.
-								  BlTextElement new text: timeStamp } ]
-		ifFalse: [ datasetName foreground: Color red.
-					  nodeElement := BlTextElement new text: datasetName  ].
-	^ self apRoundedBoxAroundElement: nodeElement.
-]
-
-{ #category : #inspecting }
-APActivePaper >> apWorkflowViewFor: aMondrian [
-	| scripts datasets edges |
-	scripts := self class scripts.
-	datasets := self apDatasets.
-	"The dataset nodes"
-	aMondrian nodes
-		shape: [ :x | self apWorkflowNodeForValueHolder: x ];
-		with: datasets values.
-	"The script nodes"
-	aMondrian nodes
-		shape: [ :x | self apWorkflowNodeForScript: x];
-		with: scripts values asIdentitySet.
-	edges := OrderedCollection new.
-	"The edges from datasets to scripts"
-	self apDataDependencies
-		keysAndValuesDo:
-			[ :var :dependencies |
-				dependencies do:
-					[ :each |
-						edges add: { datasets at: each. scripts at: var } ] ].
-	"The edges from scripts to datasets"
-	scripts
-		keysAndValuesDo:
-			[ :dataSetName :script |
-			 	edges add: {script. datasets at: dataSetName } ].
-	"The graphical representation of the edges"
-	aMondrian edges
-		shape: [ :x | self apWorkflowArrow ];
-		fromCenterBottom;
-		toCenterTop;
-		connect: edges from: #first to: #second.
-
 ]
 
 { #category : #initialization }

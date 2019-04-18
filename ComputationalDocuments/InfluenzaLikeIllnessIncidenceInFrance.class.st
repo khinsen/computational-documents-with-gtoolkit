@@ -58,7 +58,8 @@ Class {
 	#superclass : #APActivePaper,
 	#instVars : [
 		'#downloadUrl => APDataSlot',
-		'#csvFile => APDataSlot'
+		'#csvFile => APDataSlot',
+		'#rawDataFrame => APDataSlot'
 	],
 	#category : #ComputationalDocuments
 }
@@ -91,6 +92,23 @@ InfluenzaLikeIllnessIncidenceInFrance >> downloadUrl [ self ensureDataset: #down
 InfluenzaLikeIllnessIncidenceInFrance >> initialize [
 	super initialize.
 	self class initializeSlots: self.
+]
+
+{ #category : #accessing }
+InfluenzaLikeIllnessIncidenceInFrance >> makeRawDataFrame [
+	<computes: #rawDataFrame>
+	| csvLines dataLines |
+	csvLines := csvFile lines.
+	dataLines := csvLines allButFirst: 2.
+	rawDataFrame := DataFrame withRows:
+		(dataLines collect: [ :each | each splitOn: ',' ]).
+	rawDataFrame columnNames:
+		((csvLines at: 2) splitOn: ',')
+
+]
+
+{ #category : #generated }
+InfluenzaLikeIllnessIncidenceInFrance >> rawDataFrame [ self ensureDataset: #rawDataFrame. ^ rawDataFrame
 ]
 
 { #category : #accessing }

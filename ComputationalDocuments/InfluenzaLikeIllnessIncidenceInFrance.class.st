@@ -69,6 +69,40 @@ Class {
 InfluenzaLikeIllnessIncidenceInFrance class >> isAbstract [ ^ false
 ]
 
+{ #category : #accessing }
+InfluenzaLikeIllnessIncidenceInFrance >> convertDataTypes [
+	<computes: #data>
+	"Make a new data frame of equal dimensions and column names."
+	data := DataFrame new: textData dimensions.
+	data columnNames: textData columnNames.
+	
+	"Transform week column into Week objects."
+	data column: 'week'
+		  put: ((textData column: 'week') collect:
+					[ :each | Week year: (each first: 4) asNumber
+										isoWeek: (each last: 2) asNumber ]).
+	"Transform numerical columns into numbers."
+	#('indicator' 'inc' 'inc_low' 'inc_up' 'inc100' 'inc100_low' 'inc100_up') do:
+			[ :c |
+				data column: c
+					  put: ((textData column: c)
+								collect:
+									[ : each |
+										[ each asNumber ]
+										on: Error do: [ :exception | nil ] ]) ].
+	
+	"Copy over the string-values columns."
+	#('geo_insee' 'geo_name') do:
+		[ : c |
+			data column: c put: (textData column: c) ].
+	
+	"Sort by ascending week number."
+	data sortBy: 'week'.
+	
+	"Check that all data was converted."
+	self assert: data dimensions = textData dimensions.
+]
+
 { #category : #generated }
 InfluenzaLikeIllnessIncidenceInFrance >> csvFile [ self ensureDataset: #csvFile. ^ csvFile
 ]

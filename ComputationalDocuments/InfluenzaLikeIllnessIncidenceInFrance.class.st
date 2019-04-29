@@ -59,7 +59,8 @@ Class {
 	#instVars : [
 		'#downloadUrl => APDataSlot',
 		'#csvFile => APDataSlot',
-		'#rawDataFrame => APDataSlot'
+		'#textData => APDataSlot',
+		'#data => APDataSlot'
 	],
 	#category : #ComputationalDocuments
 }
@@ -70,6 +71,10 @@ InfluenzaLikeIllnessIncidenceInFrance class >> isAbstract [ ^ false
 
 { #category : #generated }
 InfluenzaLikeIllnessIncidenceInFrance >> csvFile [ self ensureDataset: #csvFile. ^ csvFile
+]
+
+{ #category : #generated }
+InfluenzaLikeIllnessIncidenceInFrance >> data [ self ensureDataset: #data. ^ data
 ]
 
 { #category : #accessing }
@@ -95,24 +100,24 @@ InfluenzaLikeIllnessIncidenceInFrance >> initialize [
 ]
 
 { #category : #accessing }
-InfluenzaLikeIllnessIncidenceInFrance >> makeRawDataFrame [
-	<computes: #rawDataFrame>
+InfluenzaLikeIllnessIncidenceInFrance >> parseCsvFile [
+	<computes: #textData>
 	| csvLines dataLines |
 	csvLines := csvFile lines.
 	dataLines := csvLines allButFirst: 2.
-	rawDataFrame := DataFrame withRows:
+	textData := DataFrame withRows:
 		(dataLines collect: [ :each | each splitOn: ',' ]).
-	rawDataFrame columnNames:
+	textData columnNames:
 		((csvLines at: 2) splitOn: ',')
 
-]
-
-{ #category : #generated }
-InfluenzaLikeIllnessIncidenceInFrance >> rawDataFrame [ self ensureDataset: #rawDataFrame. ^ rawDataFrame
 ]
 
 { #category : #accessing }
 InfluenzaLikeIllnessIncidenceInFrance >> setDownloadUrl [
 	<computes: #downloadUrl>
 	downloadUrl := 'http://www.sentiweb.fr/datasets/incidence-PAY-3.csv'
+]
+
+{ #category : #generated }
+InfluenzaLikeIllnessIncidenceInFrance >> textData [ self ensureDataset: #textData. ^ textData
 ]

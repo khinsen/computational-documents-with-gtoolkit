@@ -5,9 +5,19 @@ This dataset on the incidence of influenza-like illness (French: syndrôme gripp
 
 For each week, an estimated incidence is provided together with statistical lower and upper bounds for this estimate. A population-relative incidence estimate (cases per 100.000 inhabitants) is provided as well. The Web site does not say where the population data has been taken from.
 
+See ${wikiPage:name=DataProcessing}$ for an explanation of how the datasets in this document were obtained from the downloaded tables.
+
 Here is a tabular view of the data:
 [[[
-FluDataset uniqueInstance.
+self data.
+]]]
+
+One week in the dataset has missing data:
+[[[
+self data select:
+	[ :row | row detect: [ :each | each isNil ]
+					 ifFound: [ true ]
+					 ifNone: [ false ]]
 ]]]
 
 And here is a plot of the whole time series:
@@ -57,16 +67,45 @@ Class {
 	#name : #InfluenzaLikeIllnessIncidenceInFrance,
 	#superclass : #APActivePaper,
 	#instVars : [
-		'#downloadUrl => APOldDataSlot',
-		'#csvFile => APOldDataSlot',
-		'#textData => APOldDataSlot',
-		'#data => APOldDataSlot'
+		'#downloadUrl => APDataSlot',
+		'#csvFile => APDataSlot',
+		'#textData => APDataSlot',
+		'#data => APDataSlot'
 	],
 	#category : #ComputationalDocuments
 }
 
 { #category : #testing }
 InfluenzaLikeIllnessIncidenceInFrance class >> isAbstract [ ^ false
+]
+
+{ #category : #wikiPages }
+InfluenzaLikeIllnessIncidenceInFrance class >> wikiPageDataProcessing [
+	"This method was automatically generated."
+	<wikiPage: #DataProcessing>
+	^APWikiPage
+		wiki: self
+		name: #DataProcessing
+		text: 
+'!Data processing steps
+
+1. Set the URL for downloading the data
+${method:name=InfluenzaLikeIllnessIncidenceInFrance>>#setDownloadUrl|expanded=}$
+
+2. Download the CSV file into a string
+${method:name=InfluenzaLikeIllnessIncidenceInFrance>>#downloadCsvFile|expanded=}$
+
+3. Parse the CSV data into a ${class:name=DataFrame}$
+${method:name=InfluenzaLikeIllnessIncidenceInFrance>>#parseCsvFile|expanded=}$
+
+4. Convert each column to an appropriate data type
+${method:name=InfluenzaLikeIllnessIncidenceInFrance>>#convertDataTypes|expanded=}$
+
+
+
+
+
+'
 ]
 
 { #category : #accessing }
@@ -114,13 +153,13 @@ InfluenzaLikeIllnessIncidenceInFrance >> data [ self ensureDataset: #data. ^ dat
 { #category : #accessing }
 InfluenzaLikeIllnessIncidenceInFrance >> downloadCsvFile [
 	<computes: #csvFile>
-	| data |
-	data :=
+	| dataFile |
+	dataFile :=
 		ZnClient new
 			beOneShot;
 			get: downloadUrl;
 			entity.
-	csvFile := data contents
+	csvFile := dataFile contents
 ]
 
 { #category : #generated }

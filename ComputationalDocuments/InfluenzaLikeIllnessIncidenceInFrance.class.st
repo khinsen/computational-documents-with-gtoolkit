@@ -3,13 +3,18 @@
 
 This dataset on the incidence of influenza-like illness (French: syndrôme grippal) in France has been made available by the ""Réseau Sentinelles"" (*https://www.sentiweb.fr/*) and provides estimates extrapolated from the diagnoses made by general practitioners all over the country. The dataset contains cumulative weekly data, starting in October 1984. Unfortunately, the Web site does not provide the raw data (number of diagnoses), nor an explanation of the statistical methods used for generating the estimates.
 
-For each week, an estimated incidence is provided together with statistical lower and upper bounds for this estimate. A population-relative incidence estimate (cases per 100.000 inhabitants) is provided as well. The Web site does not say where the population data has been taken from.
+For each week, an  incidence estimation is provided together with a 95% confidence interval. A population-relative incidence estimatation (cases per 100.000 inhabitants) is provided as well, again with a 95% confidence interval. The Web site does not say where the population data has been taken from.
 
 See ${wikiPage:name=DataProcessing}$ for an explanation of how the datasets in this document were obtained from the downloaded tables.
 
 Here is a tabular view of the data:
 [[[
 self data.
+]]]
+
+The descriptions of the fields is available as well:
+[[[
+self fieldDescriptions
 ]]]
 
 One week in the dataset has missing data:
@@ -109,35 +114,42 @@ ${method:name=InfluenzaLikeIllnessIncidenceInFrance>>#convertDataTypes|expanded=
 '
 ]
 
-{ #category : #accessing }
+{ #category : #'data conversion' }
+InfluenzaLikeIllnessIncidenceInFrance >> convertColumnToNumbers: aColumn [
+	^ aColumn collect:
+		[ : each |
+			[ each asNumber ]
+			on: Error do: [ :exception | nil ] ]
+]
+
+{ #category : #scripts }
 InfluenzaLikeIllnessIncidenceInFrance >> convertDataTypes [
 	<computes: #data>
+	| columnNames |
+
 	"Make a new data frame of equal dimensions and column names."
+	columnNames := textData columnNames.
 	data := DataFrame new: textData dimensions.
-	data columnNames: textData columnNames.
-	
+	data columnNames: columnNames.
+	columnNames := columnNames copy.
+
 	"Transform week column into Week objects."
 	data column: 'week'
 		  put: ((textData column: 'week') collect:
 					[ :each | Week year: (each first: 4) asNumber
 										isoWeek: (each last: 2) asNumber ]).
-	"Transform numerical columns into numbers."
-	#('indicator'
-	  'inc' 'inc_low' 'inc_up'
-	  'inc100' 'inc100_low' 'inc100_up') do:
-			[ :c |
-				data column: c
-					  put: ((textData column: c)
-								collect:
-									[ : each |
-										[ each asNumber ]
-										on: Error do: [ :exception | nil ] ]) ].
-	
-	"Copy over the string-valued columns."
-	#('geo_insee' 'geo_name') do:
-		[ : c |
-			data column: c put: (textData column: c) ].
-	
+	columnNames remove: 'week'.
+
+	"Transform numerical columns into numbers, keep text columns as text"
+	columnNames do:
+		[ :cn |
+			| column type |
+			column := textData column: cn.
+			type := (fieldDescriptions at: cn) at: 'type'.
+			type = 'integer'
+				ifTrue: [ column := self convertColumnToNumbers: column ].
+			data column: cn put: column ].
+
 	"Sort by ascending week number."
 	data sortBy: 'week'.
 	
@@ -153,7 +165,7 @@ InfluenzaLikeIllnessIncidenceInFrance >> csvFile [ self ensureDataset: #csvFile.
 InfluenzaLikeIllnessIncidenceInFrance >> data [ self ensureDataset: #data. ^ data
 ]
 
-{ #category : #accessing }
+{ #category : #scripts }
 InfluenzaLikeIllnessIncidenceInFrance >> downloadCsvFile [
 	<computes: #csvFile>
 	| dataFile |
@@ -165,7 +177,7 @@ InfluenzaLikeIllnessIncidenceInFrance >> downloadCsvFile [
 	csvFile := dataFile contents
 ]
 
-{ #category : #accessing }
+{ #category : #scripts }
 InfluenzaLikeIllnessIncidenceInFrance >> downloadFieldDescriptions [
 	<computes: #fieldDescriptions>
 	| schemaUrl schemaJson schema |
@@ -197,7 +209,7 @@ InfluenzaLikeIllnessIncidenceInFrance >> initialize [
 	self class initializeSlots: self.
 ]
 
-{ #category : #accessing }
+{ #category : #scripts }
 InfluenzaLikeIllnessIncidenceInFrance >> parseCsvFile [
 	<computes: #textData>
 	| csvLines dataLines |
@@ -210,7 +222,7 @@ InfluenzaLikeIllnessIncidenceInFrance >> parseCsvFile [
 
 ]
 
-{ #category : #accessing }
+{ #category : #scripts }
 InfluenzaLikeIllnessIncidenceInFrance >> setDownloadUrl [
 	<computes: #downloadUrl>
 	downloadUrl := 'http://www.sentiweb.fr/datasets/incidence-PAY-3.csv'

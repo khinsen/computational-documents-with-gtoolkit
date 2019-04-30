@@ -20,9 +20,7 @@ self fieldDescriptions
 One week in the dataset has missing data:
 [[[
 self data select:
-	[ :row | row detect: #isNil
-					 ifFound: [ true ]
-					 ifNone: [ false ]]
+	[ :row | (row collect: #isNil) includes: true ]
 ]]]
 
 A plot of the whole time series for the absolute incidence gives a good overview:
@@ -76,7 +74,9 @@ Class {
 		'#csvFile => APDataSlot',
 		'#textData => APDataSlot',
 		'#data => APDataSlot',
-		'#fieldDescriptions => APDataSlot'
+		'#fieldDescriptions => APDataSlot',
+		'#absoluteIncidence => APDataSlot',
+		'#populationRelativeIncidence => APDataSlot'
 	],
 	#category : #ComputationalDocuments
 }
@@ -112,6 +112,10 @@ ${method:name=InfluenzaLikeIllnessIncidenceInFrance>>#convertDataTypes|expanded=
 
 
 '
+]
+
+{ #category : #generated }
+InfluenzaLikeIllnessIncidenceInFrance >> absoluteIncidence [ self ensureDataset: #absoluteIncidence. ^ absoluteIncidence
 ]
 
 { #category : #'data conversion' }
@@ -199,6 +203,21 @@ InfluenzaLikeIllnessIncidenceInFrance >> downloadFieldDescriptions [
 InfluenzaLikeIllnessIncidenceInFrance >> downloadUrl [ self ensureDataset: #downloadUrl. ^ downloadUrl
 ]
 
+{ #category : #scripts }
+InfluenzaLikeIllnessIncidenceInFrance >> extractIncidenceData [
+	<computes: #absoluteIncidence>
+	<computes: #populationRelativeIncidence>
+	| validData |
+	validData := data select:
+						[ :row |
+							(row detect: #isNil
+								  ifFound: [ false ]
+								  ifNone: [ true ]) ].
+	absoluteIncidence := data columns: #('week' 'inc' 'inc_low' 'inc_up').
+	populationRelativeIncidence := data columns: #('week' 'inc100' 'inc100_low' 'inc100_up').
+
+]
+
 { #category : #generated }
 InfluenzaLikeIllnessIncidenceInFrance >> fieldDescriptions [ self ensureDataset: #fieldDescriptions. ^ fieldDescriptions
 ]
@@ -220,6 +239,10 @@ InfluenzaLikeIllnessIncidenceInFrance >> parseCsvFile [
 	textData columnNames:
 		((csvLines at: 2) splitOn: ',')
 
+]
+
+{ #category : #generated }
+InfluenzaLikeIllnessIncidenceInFrance >> populationRelativeIncidence [ self ensureDataset: #populationRelativeIncidence. ^ populationRelativeIncidence
 ]
 
 { #category : #scripts }

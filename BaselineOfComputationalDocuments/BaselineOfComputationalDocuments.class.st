@@ -14,6 +14,10 @@ BaselineOfComputationalDocuments >> baseline: spec [
 			with: [ spec repository: 'github://activepapers/activepapers-pharo/src' ].
 
 		spec
+			baseline: 'ObservableSlot'
+			with: [ spec repository: 'github://guillep/ObservableSlots/src' ].
+
+		spec
 			baseline: 'DataFrame'
 			with: [ spec repository: 'github://PolyMathOrg/DataFrame/src' ].
 
@@ -35,6 +39,6 @@ BaselineOfComputationalDocuments >> baseline: spec [
 
 		spec
 			package: 'ComputationalDocuments'
-			with: [ spec requires: #('ActivePapers' 'DataFrame' 'Roassal2' 'PolyMath'
+			with: [ spec requires: #('ActivePapers' 'ObservableSlot' 'DataFrame' 'Roassal2' 'PolyMath'
 											'SingletonTrait' 'EqualityThroughVariablesTrait') ] ].
 ]

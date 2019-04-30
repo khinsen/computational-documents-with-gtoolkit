@@ -57,10 +57,10 @@ Class {
 	#name : #InfluenzaLikeIllnessIncidenceInFrance,
 	#superclass : #APActivePaper,
 	#instVars : [
-		'#downloadUrl => APDataSlot',
-		'#csvFile => APDataSlot',
-		'#textData => APDataSlot',
-		'#data => APDataSlot'
+		'#downloadUrl => APOldDataSlot',
+		'#csvFile => APOldDataSlot',
+		'#textData => APOldDataSlot',
+		'#data => APOldDataSlot'
 	],
 	#category : #ComputationalDocuments
 }

@@ -1,8 +1,8 @@
 Class {
 	#name : #APScriptWorkflow,
 	#superclass : #Object,
-	#traits : 'TAPData',
-	#classTraits : 'TAPData classTrait',
+	#traits : 'TAPOldData',
+	#classTraits : 'TAPOldData classTrait',
 	#instVars : [
 		'apScripts',
 		'apDataDependencies',
@@ -29,7 +29,7 @@ APScriptWorkflow class >> addInstVarNamed: aString [
 	newInstVarNames do: [ :each |
 		| varSymbol |
 		varSymbol := each asSymbol.
-		self addSlot: (APDataSlot named: varSymbol).
+		self addSlot: (APOldDataSlot named: varSymbol).
 		self compile: each , ' self apCompute: #', each, '. ^ ', each.
 		(self compiledMethodAt: varSymbol) protocol: 'generated' ].
 

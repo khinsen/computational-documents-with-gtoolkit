@@ -12,7 +12,7 @@ Here is a tabular view of the data:
 self data.
 ]]]
 
-The descriptions of the fields is available as well:
+And here are the descriptions of the fields provided by the Web site:
 [[[
 self fieldDescriptions
 ]]]
@@ -25,9 +25,9 @@ self data select:
 					 ifNone: [ false ]]
 ]]]
 
-And here is a plot of the whole time series:
+A plot of the whole time series for the absolute incidence gives a good overview:
 [[[
-FluDataset uniqueInstance incidencePlot.
+self  absoluteIncidencePlot.
 ]]]
 
 A zoom on a few years makes the seasonal character of the incidence clearer:

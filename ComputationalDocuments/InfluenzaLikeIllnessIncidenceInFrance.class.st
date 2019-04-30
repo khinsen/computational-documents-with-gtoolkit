@@ -15,7 +15,7 @@ self data.
 One week in the dataset has missing data:
 [[[
 self data select:
-	[ :row | row detect: [ :each | each isNil ]
+	[ :row | row detect: #isNil
 					 ifFound: [ true ]
 					 ifNone: [ false ]]
 ]]]
@@ -70,7 +70,8 @@ Class {
 		'#downloadUrl => APDataSlot',
 		'#csvFile => APDataSlot',
 		'#textData => APDataSlot',
-		'#data => APDataSlot'
+		'#data => APDataSlot',
+		'#fieldDescriptions => APDataSlot'
 	],
 	#category : #ComputationalDocuments
 }
@@ -121,7 +122,9 @@ InfluenzaLikeIllnessIncidenceInFrance >> convertDataTypes [
 					[ :each | Week year: (each first: 4) asNumber
 										isoWeek: (each last: 2) asNumber ]).
 	"Transform numerical columns into numbers."
-	#('indicator' 'inc' 'inc_low' 'inc_up' 'inc100' 'inc100_low' 'inc100_up') do:
+	#('indicator'
+	  'inc' 'inc_low' 'inc_up'
+	  'inc100' 'inc100_low' 'inc100_up') do:
 			[ :c |
 				data column: c
 					  put: ((textData column: c)
@@ -130,7 +133,7 @@ InfluenzaLikeIllnessIncidenceInFrance >> convertDataTypes [
 										[ each asNumber ]
 										on: Error do: [ :exception | nil ] ]) ].
 	
-	"Copy over the string-values columns."
+	"Copy over the string-valued columns."
 	#('geo_insee' 'geo_name') do:
 		[ : c |
 			data column: c put: (textData column: c) ].
@@ -162,8 +165,30 @@ InfluenzaLikeIllnessIncidenceInFrance >> downloadCsvFile [
 	csvFile := dataFile contents
 ]
 
+{ #category : #accessing }
+InfluenzaLikeIllnessIncidenceInFrance >> downloadFieldDescriptions [
+	<computes: #fieldDescriptions>
+	| schemaUrl schemaJson schema |
+	schemaUrl := 'https://ns.sentiweb.fr/incidence/csv-schema-v1.json'.
+	schemaJson :=
+			ZnClient new
+				beOneShot;
+				get: schemaUrl;
+				entity.
+	schema := STONJSON fromString: schemaJson contents.
+	fieldDescriptions := Dictionary new.
+	((schema at: 'schema') at: 'fields') do:
+		[ :field |
+			fieldDescriptions at: (field at: 'name') put: field ].
+
+]
+
 { #category : #generated }
 InfluenzaLikeIllnessIncidenceInFrance >> downloadUrl [ self ensureDataset: #downloadUrl. ^ downloadUrl
+]
+
+{ #category : #generated }
+InfluenzaLikeIllnessIncidenceInFrance >> fieldDescriptions [ self ensureDataset: #fieldDescriptions. ^ fieldDescriptions
 ]
 
 { #category : #initialization }

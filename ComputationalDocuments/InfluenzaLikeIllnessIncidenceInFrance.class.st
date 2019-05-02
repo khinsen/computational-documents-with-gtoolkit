@@ -5,7 +5,7 @@ This dataset on the incidence of influenza-like illness (French: syndrôme gripp
 
 For each week, an  incidence estimation is provided together with a 95% confidence interval. A population-relative incidence estimatation (cases per 100.000 inhabitants) is provided as well, again with a 95% confidence interval. The Web site does not say where the population data has been taken from.
 
-See ${wikiPage:name=DataProcessing}$ for an explanation of how the datasets in this document were obtained from the downloaded tables.
+See ${wikiPage:name=DataProcessing}$ for an explanation of how the datasets in this document were obtained from the downloaded tables, and ${wikiPage:name=Verification}$ for consistency and validity checks.
 
 Here is a tabular view of the data:
 [[[
@@ -17,53 +17,13 @@ And here are the descriptions of the fields provided by the Web site:
 self fieldDescriptions
 ]]]
 
-One week in the dataset has missing data:
+
+A plot of a four-year period shows the seasonal character of the incidence:
 [[[
-self data select:
-	[ :row | (row collect: #isNil) includes: true ]
+| fourYears |
+fourYears := Timespan starting: (DateAndTime fromString: '2014-01-01') duration: 4 years.
+self incidencePlotFor: (self selectTimespan: fourYears forIncidenceData: self absoluteIncidence)
 ]]]
-
-A plot of the whole time series for the absolute incidence gives a good overview:
-[[[
-self  absoluteIncidencePlot.
-]]]
-
-A zoom on a few years makes the seasonal character of the incidence clearer:
-[[[
-(FluDataset uniqueInstance incidencePlotForTimespan: (Timespan starting: (DateAndTime fromString: '2014-01-01') duration: 4 years))
-]]]
-
-The dataset has missing incidence data for one week: 
-[[[
-(FluDataset uniqueInstance asDataFrame select: [ :row | row atKey: 'missingData' ]) column: 'week'
-]]]
-
-Searching for gaps (week-to-week distances of more than seven days) in the week column after removing the missing data point yields exactly one gap corresponding to the missing data point, meaning that the dataset is otherwise complete:
-[[[
-| weeks gaps |
-weeks := FluDataset uniqueInstance asCleanedUpDataFrame column: 'week'.
-gaps := OrderedCollection new.
-weeks allButFirst with: weeks allButLast do:
-	[ :w2 :w1 |
-		(w2 - w1) = (Duration days: 7)
-			ifFalse: [ gaps add: { w1 . w2 } ] ].
-gaps
-]]]
-
- 
-!!Data processing
-
-The raw data is downloaded directly from the Web site, noting the retrieval date because the URL points to a continuously updated file.
-${method:name=FluDataset>>#initialize|expanded=}$
-
-Next, the downloaded CSV file is parsed and the data fields, still in text format, are loaded into a ${class:name=DataFrame}$.
-${method:name=FluDataset>>#asRawDataFrame|expanded=}$
-
-A proper ${class:name=DataFrame}$ is then constructed by converting each column into an appropriate data type. Most columns are numerical, the most notable exception being 'week', which indicates the week to which the observations belong, and which are converted to ${class:name=Week}$ objects. In the numerical columns, failed conversions indicate missing data that gets replaced by ==nil==. To facilitate the identification of rows with missing data values, a new boolean column 'missingData' is added.
-${method:name=FluDataset>>#asDataFrame|expanded=}$
-
-Finally, a cleaned-up ${class:name=DataFrame}$ contains neither the rows with missing data nor the uninteresting columns whose values are constant.
-${method:name=FluDataset>>#asCleanedUpDataFrame|expanded=}$
 
 "
 Class {
@@ -104,18 +64,52 @@ ${method:name=InfluenzaLikeIllnessIncidenceInFrance>>#downloadCsvFile|expanded=}
 3. Parse the CSV data into a ${class:name=DataFrame}$
 ${method:name=InfluenzaLikeIllnessIncidenceInFrance>>#parseCsvFile|expanded=}$
 
-4. Convert each column to an appropriate data type
+4. Download the descriptions of the individual fields (provided as a JSON schema)
+${method:name=InfluenzaLikeIllnessIncidenceInFrance>>#downloadFieldDescriptions|expanded=}$
+5. Convert each column to the appropriate data type. The data type is taken from the field descriptions. All columns are either ==''integer''== or ==''string''==. There is a special treatment for column ==''week''== which is listed as ==''integer''==, but the integer is really a special encoding of an ISO-8601 week number. For the standrd ==''integer''== columns, illegal values are converted to ==nil==.
 ${method:name=InfluenzaLikeIllnessIncidenceInFrance>>#convertDataTypes|expanded=}$
 
-
+6. Extract separate data frames for the absolute and the population-relative incidence estimations, removing missing data points. The resulting datasets are the most useful ones for analysis.
+${method:name=InfluenzaLikeIllnessIncidenceInFrance>>#extractIncidenceData|expanded=}$
 
 
 
 '
 ]
 
+{ #category : #wikiPages }
+InfluenzaLikeIllnessIncidenceInFrance class >> wikiPageVerification [
+	"This method was automatically generated."
+	<wikiPage: #Verification>
+	^APWikiPage
+		wiki: self
+		name: #Verification
+		text: 
+'!Verification
+
+One week in the dataset has missing data:
+[[[
+self data select:
+	[ :row | (row collect: #isNil) includes: true ]
+]]]
+
+Searching for gaps (week-to-week distances of more than seven days) in the week column after removing the missing data point yields exactly one gap corresponding to the missing data point, meaning that the dataset is otherwise complete:
+[[[
+| weeks gaps |
+weeks := (self absoluteIncidence column: ''week'') asArray.
+gaps := OrderedCollection new.
+weeks allButFirst with: weeks allButLast do:
+	[ :w2 :w1 |
+		(w2 - w1) = (Duration days: 7)
+			ifFalse: [ gaps add: { w2-w1. w1 . w2 } ] ].
+gaps
+]]]
+
+'
+]
+
 { #category : #generated }
-InfluenzaLikeIllnessIncidenceInFrance >> absoluteIncidence [ self ensureDataset: #absoluteIncidence. ^ absoluteIncidence
+InfluenzaLikeIllnessIncidenceInFrance >> absoluteIncidence [ ^ absoluteIncidence
 ]
 
 { #category : #'data conversion' }
@@ -162,11 +156,11 @@ InfluenzaLikeIllnessIncidenceInFrance >> convertDataTypes [
 ]
 
 { #category : #generated }
-InfluenzaLikeIllnessIncidenceInFrance >> csvFile [ self ensureDataset: #csvFile. ^ csvFile
+InfluenzaLikeIllnessIncidenceInFrance >> csvFile [ ^ csvFile
 ]
 
 { #category : #generated }
-InfluenzaLikeIllnessIncidenceInFrance >> data [ self ensureDataset: #data. ^ data
+InfluenzaLikeIllnessIncidenceInFrance >> data [ ^ data
 ]
 
 { #category : #scripts }
@@ -200,7 +194,7 @@ InfluenzaLikeIllnessIncidenceInFrance >> downloadFieldDescriptions [
 ]
 
 { #category : #generated }
-InfluenzaLikeIllnessIncidenceInFrance >> downloadUrl [ self ensureDataset: #downloadUrl. ^ downloadUrl
+InfluenzaLikeIllnessIncidenceInFrance >> downloadUrl [ ^ downloadUrl
 ]
 
 { #category : #scripts }
@@ -213,13 +207,38 @@ InfluenzaLikeIllnessIncidenceInFrance >> extractIncidenceData [
 							(row detect: #isNil
 								  ifFound: [ false ]
 								  ifNone: [ true ]) ].
-	absoluteIncidence := data columns: #('week' 'inc' 'inc_low' 'inc_up').
-	populationRelativeIncidence := data columns: #('week' 'inc100' 'inc100_low' 'inc100_up').
-
+	absoluteIncidence := validData columns: #('week' 'inc' 'inc_low' 'inc_up').
+	absoluteIncidence columnNames:
+		#('week' 'estimation' 'confidenceInterval95LowerLimit' 'confidenceInterval95UpperLimit').
+	populationRelativeIncidence := validData columns: #('week' 'inc100' 'inc100_low' 'inc100_up').
+	populationRelativeIncidence columnNames:
+		#('week' 'estimation' 'confidenceInterval95LowerLimit' 'confidenceInterval95UpperLimit')
 ]
 
 { #category : #generated }
-InfluenzaLikeIllnessIncidenceInFrance >> fieldDescriptions [ self ensureDataset: #fieldDescriptions. ^ fieldDescriptions
+InfluenzaLikeIllnessIncidenceInFrance >> fieldDescriptions [ ^ fieldDescriptions
+]
+
+{ #category : #plotting }
+InfluenzaLikeIllnessIncidenceInFrance >> incidencePlotFor: incidenceDataSeries [
+	| minDate b ds |
+	minDate := (incidenceDataSeries column: 'week') first start asDate.
+	b := RTGrapher new.
+	b extent: 300 @ 200.
+	ds := RTData new.
+	ds interaction popup.
+	ds points: (incidenceDataSeries columns: #('week' 'estimation')).
+	ds x: [ :point | ((point at: 'week') start asDate julianDayNumber) - minDate julianDayNumber ].
+	ds y: [ :point | point at: 'estimation' ].
+	ds barShape color: Color blue; width: 1.
+	b add: ds.
+	b axisX
+		labelRotation: -40;
+		labelConversion: [ :v | Date julianDayNumber: v + minDate julianDayNumber ].
+	b axisY.
+	b build.
+	b view @ RTZoomableView @ RTZoomableBoxView.
+	^ b view
 ]
 
 { #category : #initialization }
@@ -242,7 +261,18 @@ InfluenzaLikeIllnessIncidenceInFrance >> parseCsvFile [
 ]
 
 { #category : #generated }
-InfluenzaLikeIllnessIncidenceInFrance >> populationRelativeIncidence [ self ensureDataset: #populationRelativeIncidence. ^ populationRelativeIncidence
+InfluenzaLikeIllnessIncidenceInFrance >> populationRelativeIncidence [ ^ populationRelativeIncidence
+]
+
+{ #category : #selecting }
+InfluenzaLikeIllnessIncidenceInFrance >> selectTimespan: aTimespan forIncidenceData: anIncidenceDataFrame [
+	"Select all weeks whose intersection with the given timespan is more than half a week."
+	aTimespan ifNil: [ ^ anIncidenceDataFrame ].
+	^ anIncidenceDataFrame select:
+		[ :row | ((row at: 'week') asTimespan
+						intersection: aTimespan)
+						ifNil: [ false ]
+						ifNotNil: [ :ts | ts duration * 2 > 1 week ] ]
 ]
 
 { #category : #scripts }
@@ -252,5 +282,5 @@ InfluenzaLikeIllnessIncidenceInFrance >> setDownloadUrl [
 ]
 
 { #category : #generated }
-InfluenzaLikeIllnessIncidenceInFrance >> textData [ self ensureDataset: #textData. ^ textData
+InfluenzaLikeIllnessIncidenceInFrance >> textData [ ^ textData
 ]

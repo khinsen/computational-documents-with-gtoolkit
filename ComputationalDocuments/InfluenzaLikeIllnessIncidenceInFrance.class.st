@@ -18,11 +18,14 @@ self fieldDescriptions
 ]]]
 
 
-A plot of a four-year period shows the seasonal character of the incidence:
+A plot of a three-year period shows the seasonal character of the incidence:
 [[[
-| fourYears |
-fourYears := Timespan starting: (DateAndTime fromString: '2014-01-01') duration: 4 years.
-self incidencePlotFor: (self selectTimespan: fourYears forIncidenceData: self absoluteIncidence)
+| threeYears |
+threeYears := Timespan starting: (DateAndTime fromString: '2015-01-01') duration: 4 years.
+APGraphics show:
+	(self incidencePlotFor:
+		(self selectTimespan: threeYears
+				forIncidenceData: self absoluteIncidence))
 ]]]
 
 "
@@ -226,19 +229,27 @@ InfluenzaLikeIllnessIncidenceInFrance >> incidencePlotFor: incidenceDataSeries [
 	b := RTGrapher new.
 	b extent: 300 @ 200.
 	ds := RTData new.
+	ds label: 'Incidence of influenza-like illness'.
 	ds interaction popup.
 	ds points: (incidenceDataSeries columns: #('week' 'estimation')).
 	ds x: [ :point | ((point at: 'week') start asDate julianDayNumber) - minDate julianDayNumber ].
 	ds y: [ :point | point at: 'estimation' ].
 	ds barShape color: Color blue; width: 1.
+	ds noDot.
 	b add: ds.
+
 	b axisX
 		labelRotation: -40;
 		labelConversion: [ :v | Date julianDayNumber: v + minDate julianDayNumber ].
 	b axisY.
+
+	b addDecorator:
+		(RTCursorFollower new
+			labelXTextConvertion: [ :v | Date julianDayNumber: v + minDate julianDayNumber ]).
+
 	b build.
 	b view @ RTZoomableView @ RTZoomableBoxView.
-	^ b view
+	^ b
 ]
 
 { #category : #initialization }

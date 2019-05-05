@@ -90,6 +90,8 @@ InfluenzaLikeIllnessIncidenceInFrance class >> wikiPageVerification [
 		text: 
 '!Verification
 
+!!Completeness
+
 One week in the dataset has missing data:
 [[[
 self data select:
@@ -108,6 +110,19 @@ weeks allButFirst with: weeks allButLast do:
 gaps
 ]]]
 
+!!Correctness
+
+All incidence estimates and their confidence interval limits are positive:
+[[[
+{ self absoluteIncidence. self populationRelativeIncidence } do:
+	[ :dataSet |
+		dataSet columnNames allButFirst do:
+		[ :columnName |
+			self assert:
+				((dataSet column: columnName)
+					detect: [ :value | value < 0 ]
+					ifNone: [ nil ]) isNil ] ]
+]]]
 '
 ]
 
